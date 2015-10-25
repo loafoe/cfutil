@@ -2,10 +2,8 @@ package cfutil
 
 import (
 	"encoding/json"
-	cfenv "github.com/cloudfoundry-community/go-cfenv"
 	"github.com/jeffail/gabs"
 	"github.com/satori/go.uuid"
-	"log"
 	"os"
 	"strings"
 	"time"
