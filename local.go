@@ -2,9 +2,12 @@ package cfutil
 
 import (
 	"encoding/json"
+	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/jeffail/gabs"
 	"github.com/satori/go.uuid"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -28,20 +31,26 @@ type vcapApplication struct {
 
 func LocalVcapApplication() string {
 	appId := uuid.NewV4().String()
+	port := 8080
+	host := "localhost"
+	if p, err := strconv.Atoi(os.Getenv("PORT")); err == nil {
+		port = p
+	}
+	hostWithPort := fmt.Sprintf("%s:%d", host, port)
 
 	va := &vcapApplication{
 		ApplicationName:    "appname",
 		ApplicationVersion: appId,
 		Host:               "0.0.0.0",
-		Port:               8080,
-		ApplicationUris:    []string{"localhost:8080"},
+		Port:               port,
+		ApplicationUris:    []string{hostWithPort},
 		InstanceId:         "451f045fd16427bb99c895a2649b7b2a",
 		InstanceIndex:      0,
 		Name:               "appname",
 		Start:              time.Now(),
 		StartedAt:          time.Now(),
 		StartedTimestamp:   time.Now().Unix(),
-		Uris:               []string{"localhost:8080"},
+		Uris:               []string{hostWithPort},
 		Version:            appId,
 	}
 	json, _ := json.Marshal(va)
@@ -56,16 +65,19 @@ func LocalVcapServices() string {
 	var supportedServices = []string{
 		"postgres",
 		"smtp",
+		"rabbitmq",
 	}
 	jsonObj := gabs.New()
 	for _, service := range supportedServices {
 		env := "CF_LOCAL_" + strings.ToUpper(service)
 		uri := os.Getenv(env)
 		if uri != "" {
+			log.Printf("Adding service '%s'", service)
 			jsonObj.Array(service)
 			serviceJson := gabs.New()
 			serviceJson.Set(uri, "credentials", "uri")
 			serviceJson.Set(service, "name")
+			log.Print("Local service: ", service)
 			jsonObj.ArrayAppendP(serviceJson.Data(), service)
 		}
 	}
