@@ -1,8 +1,8 @@
 package cfutil
 
 import (
+	log "github.com/Sirupsen/logrus"
 	cfenv "github.com/cloudfoundry-community/go-cfenv"
-	"log"
 	"os"
 )
 
