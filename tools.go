@@ -13,6 +13,10 @@ func IsFirstInstance() bool {
 	return false
 }
 
+func ListenString() string {
+	return ":" + os.Getenv("PORT")
+}
+
 func Getenv(name string) string {
 	return os.Getenv(name)
 }

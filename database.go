@@ -9,27 +9,14 @@ import (
 	"regexp"
 )
 
-type DatabaseService interface {
-	DBConnection(driver, name string) (*sqlx.DB, string, error)
-}
-
-type DBConnector struct {
-}
-
-func Connector() DatabaseService {
-	var db DBConnector
-
-	return db
-}
-
-func (dbc DBConnector) DBConnection(driver, name string) (conn *sqlx.DB, connectString string, err error) {
+func NewConnection(driver, name string) (conn *sqlx.DB, connectString string, err error) {
 	appEnv, _ := Current()
 	switch driver {
 	case "postgres":
 		if name == "" {
-			connectString, err = dbc.firstMatchingService(appEnv, driver)
+			connectString, err = firstMatchingService(appEnv, driver)
 		} else {
-			connectString, err = dbc.postgresConnectString(appEnv, name)
+			connectString, err = postgresConnectString(appEnv, name)
 		}
 	default:
 		return nil, "", errors.New(fmt.Sprintf("Unsupported driver '%s'", driver))
@@ -42,7 +29,7 @@ func (dbc DBConnector) DBConnection(driver, name string) (conn *sqlx.DB, connect
 	return
 }
 
-func (dbc DBConnector) postgresConnectString(env *cfenv.App, serviceName string) (string, error) {
+func postgresConnectString(env *cfenv.App, serviceName string) (string, error) {
 	postgresService, err := env.Services.WithName(serviceName)
 	if err != nil {
 		return "", err
@@ -54,7 +41,7 @@ func (dbc DBConnector) postgresConnectString(env *cfenv.App, serviceName string)
 	return str, nil
 }
 
-func (dbc DBConnector) firstMatchingService(env *cfenv.App, schema string) (string, error) {
+func firstMatchingService(env *cfenv.App, schema string) (string, error) {
 	regex, err := regexp.Compile("^" + schema + "://")
 	if err != nil {
 		return "", err
