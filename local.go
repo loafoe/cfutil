@@ -72,12 +72,16 @@ func LocalVcapServices() string {
 		env := "CF_LOCAL_" + strings.ToUpper(service)
 		uri := os.Getenv(env)
 		if uri != "" {
-			log.Printf("Adding service '%s'", service)
 			jsonObj.Array(service)
 			serviceJson := gabs.New()
+			name := service
+			if components := strings.Split(uri, ","); len(components) > 1 {
+				name = components[0]
+				uri = components[1]
+			}
+			serviceJson.Set(name, "name")
 			serviceJson.Set(uri, "credentials", "uri")
-			serviceJson.Set(service, "name")
-			log.Print("Local service: ", service)
+			log.Print("Local service: ", name)
 			jsonObj.ArrayAppendP(serviceJson.Data(), service)
 		}
 	}
