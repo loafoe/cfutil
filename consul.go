@@ -17,7 +17,7 @@ func ServiceRegister(name string, tags ...string) error {
 		Name:    name,
 		Address: appEnv.ApplicationURIs[0],
 		Check: &consul.AgentServiceCheck{
-			HTTP:     fmt.Sprintf(schemaForConsul() + "://" + appEnv.ApplicationURIs[0] + "/health"),
+			HTTP:     fmt.Sprintf(schemaForServices() + "://" + appEnv.ApplicationURIs[0] + "/health"),
 			Interval: "30s",
 		},
 	})
@@ -68,6 +68,13 @@ func consulDialstring(serviceName string) (string, error) {
 		return fmt.Sprintf("%s:%s", hostname, port), nil
 	}
 	return fmt.Sprintf("%s:8500", hostname), nil
+}
+
+func schemaForServices() string {
+	if ForceHTTP() {
+		return "http"
+	}
+	return "https"
 }
 
 func schemaForConsul() string {
