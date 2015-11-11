@@ -16,6 +16,7 @@ func ServiceRegister(name string, tags ...string) error {
 	err = client.Agent().ServiceRegister(&consul.AgentServiceRegistration{
 		Name:    name,
 		Address: appEnv.ApplicationURIs[0],
+		Tags:    tags,
 		Check: &consul.AgentServiceCheck{
 			HTTP:     fmt.Sprintf(schemaForServices() + "://" + appEnv.ApplicationURIs[0] + "/health"),
 			Interval: "30s",
