@@ -71,8 +71,5 @@ func consulDialstring(serviceName string) (string, error) {
 }
 
 func schemaForConsul() string {
-	if ForceHTTP() {
-		return "http"
-	}
-	return "https"
+	return "http"
 }
