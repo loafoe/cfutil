@@ -66,6 +66,7 @@ func LocalVcapServices() string {
 		"postgres",
 		"smtp",
 		"rabbitmq",
+		"consul",
 	}
 	jsonObj := gabs.New()
 	for _, service := range supportedServices {

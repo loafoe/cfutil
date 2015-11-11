@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	consul "github.com/hashicorp/consul/api"
+	"net/url"
 )
 
 func ServiceRegister(name string, tags ...string) error {
@@ -48,6 +49,16 @@ func consulDialstring(serviceName string) (string, error) {
 		return "", err
 	}
 	port := "8500"
+
+	uri, ok := consulService.Credentials["uri"].(string)
+	if ok {
+		u, err := url.Parse(uri)
+		if err == nil {
+			return fmt.Sprintf("%s", u.Host), nil
+		}
+		// Fallback to hostname/port lookup
+	}
+
 	hostname, ok := consulService.Credentials["hostname"].(string)
 	if !ok {
 		return "", errors.New("consul service not available")
