@@ -7,7 +7,7 @@ import (
 	"net/url"
 )
 
-func ServiceRegister(name string, tags ...string) error {
+func ServiceRegister(name string, path string, tags ...string) error {
 	appEnv, _ := Current()
 	client, err := NewConsulClient()
 	if err != nil {
@@ -18,7 +18,7 @@ func ServiceRegister(name string, tags ...string) error {
 		Address: appEnv.ApplicationURIs[0],
 		Tags:    tags,
 		Check: &consul.AgentServiceCheck{
-			HTTP:     fmt.Sprintf(schemaForServices() + "://" + appEnv.ApplicationURIs[0] + "/health"),
+			HTTP:     fmt.Sprintf(schemaForServices() + "://" + appEnv.ApplicationURIs[0] + path),
 			Interval: "30s",
 		},
 	})
