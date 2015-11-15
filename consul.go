@@ -7,6 +7,15 @@ import (
 	"net/url"
 )
 
+func Services() (map[string]*AgentService, error) {
+	appEnv, _ := Current()
+	client, err := NewConsulClient()
+	if err != nil {
+		return err
+	}
+	return client.Services()
+}
+
 func ServiceRegister(name string, path string, tags ...string) error {
 	appEnv, _ := Current()
 	client, err := NewConsulClient()
