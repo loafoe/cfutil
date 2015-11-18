@@ -28,7 +28,7 @@ func ServiceRegister(name string, path string, tags ...string) error {
 		Tags:    tags,
 		Check: &consul.AgentServiceCheck{
 			HTTP:     fmt.Sprintf(schemaForServices() + "://" + appEnv.ApplicationURIs[0] + path),
-			Interval: "30s",
+			Interval: "60s",
 		},
 	})
 	if err != nil {
