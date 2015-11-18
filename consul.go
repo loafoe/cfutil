@@ -5,6 +5,7 @@ import (
 	"fmt"
 	consul "github.com/hashicorp/consul/api"
 	"net/url"
+	"os"
 )
 
 func Services() (map[string]*consul.AgentService, error) {
@@ -44,6 +45,7 @@ func NewConsulClient() (*consul.Client, error) {
 	client, consulErr := consul.NewClient(&consul.Config{
 		Address: dialString,
 		Scheme:  schemaForConsul(),
+		Token:   os.Getenv("CONSUL_TOKEN"),
 	})
 	if consulErr != nil {
 		return nil, consulErr
