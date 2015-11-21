@@ -54,38 +54,14 @@ func NewConsulClient() (*consul.Client, error) {
 }
 
 func consulDialstring(serviceName string) (string, string, error) {
-	if consulMaster := os.Getenv("CONSUL_MASTER"); consulMaster != "" {
+	consulMaster := ""
+	if consulMaster = os.Getenv("CONSUL_MASTER"); consulMaster != "" {
 		parsed, err := url.Parse(consulMaster)
 		if err == nil {
 			return parsed.Scheme, parsed.Host, nil
 		}
 	}
-	// Fallack to Consul service. Deprecated
-	appEnv, _ := Current()
-	consulService, err := appEnv.Services.WithName(serviceName)
-	if err != nil {
-		return schemaForConsul(), "", err
-	}
-	port := "8500"
-
-	uri, ok := consulService.Credentials["uri"].(string)
-	if ok {
-		u, err := url.Parse(uri)
-		if err == nil {
-			return schemaForConsul(), fmt.Sprintf("%s", u.Host), nil
-		}
-		// Fallback to hostname/port lookup
-	}
-
-	hostname, ok := consulService.Credentials["hostname"].(string)
-	if !ok {
-		return schemaForConsul(), "", errors.New("consul service not available")
-	}
-	port, ok = consulService.Credentials["port"].(string)
-	if ok {
-		return schemaForConsul(), fmt.Sprintf("%s:%s", hostname, port), nil
-	}
-	return schemaForConsul(), fmt.Sprintf("%s:8500", hostname), nil
+	return "", "", errors.New("CONSUL_MASTER not found or invalid url")
 }
 
 func schemaForServices() string {
@@ -93,8 +69,4 @@ func schemaForServices() string {
 		return "http"
 	}
 	return "https"
-}
-
-func schemaForConsul() string {
-	return "http"
 }
