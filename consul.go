@@ -38,13 +38,13 @@ func ServiceRegister(name string, path string, tags ...string) error {
 }
 
 func NewConsulClient() (*consul.Client, error) {
-	dialString, err := consulDialstring("consul")
+	dialScheme, dialHost, err := consulDialstring("consul")
 	if err != nil {
 		return nil, err
 	}
 	client, consulErr := consul.NewClient(&consul.Config{
-		Address: dialString,
-		Scheme:  schemaForConsul(),
+		Address: dialHost,
+		Scheme:  dialScheme,
 		Token:   os.Getenv("CONSUL_TOKEN"),
 	})
 	if consulErr != nil {
@@ -53,11 +53,18 @@ func NewConsulClient() (*consul.Client, error) {
 	return client, nil
 }
 
-func consulDialstring(serviceName string) (string, error) {
+func consulDialstring(serviceName string) (string, string, error) {
+	if consulMaster := os.Getenv("CONSUL_MASTER"); consulMaster != "" {
+		parsed, err := url.Parse(consulMaster)
+		if err == nil {
+			return parsed.Scheme, parsed.Host, nil
+		}
+	}
+	// Fallack to Consul service. Deprecated
 	appEnv, _ := Current()
 	consulService, err := appEnv.Services.WithName(serviceName)
 	if err != nil {
-		return "", err
+		return schemaForConsul(), "", err
 	}
 	port := "8500"
 
@@ -65,20 +72,20 @@ func consulDialstring(serviceName string) (string, error) {
 	if ok {
 		u, err := url.Parse(uri)
 		if err == nil {
-			return fmt.Sprintf("%s", u.Host), nil
+			return schemaForConsul(), fmt.Sprintf("%s", u.Host), nil
 		}
 		// Fallback to hostname/port lookup
 	}
 
 	hostname, ok := consulService.Credentials["hostname"].(string)
 	if !ok {
-		return "", errors.New("consul service not available")
+		return schemaForConsul(), "", errors.New("consul service not available")
 	}
 	port, ok = consulService.Credentials["port"].(string)
 	if ok {
-		return fmt.Sprintf("%s:%s", hostname, port), nil
+		return schemaForConsul(), fmt.Sprintf("%s:%s", hostname, port), nil
 	}
-	return fmt.Sprintf("%s:8500", hostname), nil
+	return schemaForConsul(), fmt.Sprintf("%s:8500", hostname), nil
 }
 
 func schemaForServices() string {
