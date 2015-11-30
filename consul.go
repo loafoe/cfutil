@@ -22,12 +22,14 @@ func ServiceRegister(name string, path string, tags ...string) error {
 	if err != nil {
 		return err
 	}
+	schema, port := schemaAndPortForServices()
 	err = client.Agent().ServiceRegister(&consul.AgentServiceRegistration{
 		Name:    name,
 		Address: appEnv.ApplicationURIs[0],
+		Port:    port,
 		Tags:    tags,
 		Check: &consul.AgentServiceCheck{
-			HTTP:     fmt.Sprintf(schemaForServices() + "://" + appEnv.ApplicationURIs[0] + path),
+			HTTP:     fmt.Sprintf(schema + "://" + appEnv.ApplicationURIs[0] + path),
 			Interval: "60s",
 		},
 	})
@@ -64,9 +66,9 @@ func consulDialstring(serviceName string) (string, string, error) {
 	return "", "", errors.New("CONSUL_MASTER not found or invalid url")
 }
 
-func schemaForServices() string {
+func schemaAndPortForServices() (string, int) {
 	if ForceHTTP() {
-		return "http"
+		return "http", 80
 	}
-	return "https"
+	return "https", 443
 }
