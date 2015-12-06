@@ -88,3 +88,8 @@ func localVcapServices() string {
 	}
 	return jsonObj.String()
 }
+
+// ListenString() returns the listen string based on the `PORT` environment variable value
+func ListenString() string {
+	return ":" + os.Getenv("PORT")
+}
