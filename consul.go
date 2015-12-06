@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+// Services() returns the list of services available from the
+// Consul cluster
 func Services() (map[string]*consul.AgentService, error) {
 	client, err := NewConsulClient()
 	if err != nil {
@@ -16,6 +18,9 @@ func Services() (map[string]*consul.AgentService, error) {
 	return client.Agent().Services()
 }
 
+// Use ServiceRegister() to register your app in the Consul cluster
+// Optionally you can provide a health endpoint on your URL and
+// a number of tags to make your service more discoverable
 func ServiceRegister(name string, path string, tags ...string) error {
 	appEnv, _ := Current()
 	client, err := NewConsulClient()
@@ -39,6 +44,9 @@ func ServiceRegister(name string, path string, tags ...string) error {
 	return nil
 }
 
+// NewConsulClient() returns a new consul client which you can use to
+// access the Consul cluster HTTP API. It uses `CONSUL_MASTER` and
+// `CONSUL_TOKEN` environment variables to set up the HTTP API connection.
 func NewConsulClient() (*consul.Client, error) {
 	dialScheme, dialHost, err := consulDialstring("consul")
 	if err != nil {

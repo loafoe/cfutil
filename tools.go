@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+// IsFirstInstance() returns true if the instance calling it
+// is the first running instance of the app within Cloudfoundry.
+// This is useful if you want to for example trigger database
+// migrations but only want to execute these on the first starting instance.
 func IsFirstInstance() bool {
 	appEnv, err := Current()
 
@@ -15,6 +19,7 @@ func IsFirstInstance() bool {
 	return false
 }
 
+// GetHostname() returns the (first) hostname designated to your app within Cloudfoundry
 func GetHostname() (string, error) {
 	appEnv, err := Current()
 	if err != nil {
@@ -28,10 +33,7 @@ func GetHostname() (string, error) {
 	return parts[0], nil
 }
 
-func ListenString() string {
-	return ":" + os.Getenv("PORT")
-}
-
+// Getenv(name) returns the environment variable value of ENV `name`
 func Getenv(name string) string {
 	return os.Getenv(name)
 }
