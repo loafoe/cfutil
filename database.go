@@ -1,3 +1,8 @@
+// Package cfutil provides a number of convenience functions to apps
+// being developed for use in a Cloudfoundry environment. For local
+// development it can simulate the CF environment variables that your
+// app typically expects. It can also emulate Cloudfoundry services
+// based on environment variables.
 package cfutil
 
 import (
@@ -5,10 +10,14 @@ import (
 	"fmt"
 	cfenv "github.com/cloudfoundry-community/go-cfenv"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // PostgreSQL driver
 	"regexp"
 )
 
+//
+// NewConnection opens a new database connection given the driver and CF service name.
+// Currently only postgres is supported.
+//
 func NewConnection(driver, name string) (conn *sqlx.DB, connectString string, err error) {
 	appEnv, _ := Current()
 	switch driver {
@@ -19,7 +28,7 @@ func NewConnection(driver, name string) (conn *sqlx.DB, connectString string, er
 			connectString, err = postgresConnectString(appEnv, name)
 		}
 	default:
-		return nil, "", errors.New(fmt.Sprintf("Unsupported driver '%s'", driver))
+		return nil, "", fmt.Errorf("Unsupported driver '%s'", driver)
 	}
 	if err != nil {
 		return nil, "", err
@@ -57,5 +66,5 @@ func firstMatchingService(env *cfenv.App, schema string) (string, error) {
 			}
 		}
 	}
-	return "", errors.New(fmt.Sprintf("No matching service found for '%s'", schema))
+	return "", fmt.Errorf("No matching service found for '%s'", schema)
 }
