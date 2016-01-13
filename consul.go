@@ -18,6 +18,34 @@ func Services() (map[string]*consul.AgentService, error) {
 	return client.Agent().Services()
 }
 
+func DiscoverServiceUrl(serviceName, tags string) (string, error) {
+	client, err := NewConsulClient()
+	if err != nil {
+		return "", err
+	}
+	services, _, err := client.Catalog().Service(serviceName, tags, nil)
+	if err != nil {
+		return "", fmt.Errorf("Service `%s` not found: %s", serviceName, err)
+	}
+	if len(services) > 0 {
+		return createUrlFromServiceCatalog(services[0])
+	}
+	return "", fmt.Errorf("Service `%s` not found", serviceName)
+
+}
+
+func createUrlFromServiceCatalog(catalog *consul.CatalogService) (string, error) {
+	var serviceUrl url.URL
+	if catalog.ServicePort == 443 {
+		serviceUrl.Scheme = "https"
+		serviceUrl.Host = catalog.ServiceAddress
+	} else {
+		serviceUrl.Scheme = "http"
+		serviceUrl.Host = fmt.Sprintf("%s:%d", catalog.ServiceAddress, catalog.ServicePort)
+	}
+	return serviceUrl.String(), nil
+}
+
 // Use ServiceRegister() to register your app in the Consul cluster
 // Optionally you can provide a health endpoint on your URL and
 // a number of tags to make your service more discoverable
