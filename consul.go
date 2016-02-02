@@ -91,6 +91,10 @@ func NewConsulClient() (*consul.Client, error) {
 	return client, nil
 }
 
+func ConsulNamespace() string {
+	return os.Getenv("CONSUL_NAMESPACE")
+}
+
 func consulDialstring(serviceName string) (string, string, error) {
 	consulMaster := ""
 	if consulMaster = os.Getenv("CONSUL_MASTER"); consulMaster != "" {
