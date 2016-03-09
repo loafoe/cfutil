@@ -50,6 +50,18 @@ func postgresConnectString(env *cfenv.App, serviceName string) (string, error) {
 	return str, nil
 }
 
+func serviceByName(env *cfenv.App, serviceName string) (string, error) {
+	service, err := env.Services.WithName(serviceName)
+	if err != nil {
+		return "", err
+	}
+	str, ok := service.Credentials["uri"].(string)
+	if !ok {
+		return "", errors.New("Service credentials not available")
+	}
+	return str, nil
+}
+
 func firstMatchingService(env *cfenv.App, schema string) (string, error) {
 	regex, err := regexp.Compile("^" + schema + "://")
 	if err != nil {

@@ -13,7 +13,16 @@ type Consumer struct {
 	done    chan error
 }
 
-func NewConsumer(amqpURI, exchange, exchangeType, queueName, key, ctag string) (*Consumer, error) {
+func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag string) (*Consumer, error) {
+	connectString := ""
+	var err error
+	appEnv, _ := Current()
+	if serviceName != "" {
+		connectString, err = serviceByName(appEnv, serviceName)
+	} else {
+		connectString, err = firstMatchingService(appEnv, "amqp")
+	}
+
 	c := &Consumer{
 		conn:    nil,
 		channel: nil,
@@ -21,10 +30,8 @@ func NewConsumer(amqpURI, exchange, exchangeType, queueName, key, ctag string) (
 		done:    make(chan error),
 	}
 
-	var err error
-
-	log.Printf("dialing %q", amqpURI)
-	c.conn, err = amqp.Dial(amqpURI)
+	log.Printf("dialing %q", connectString)
+	c.conn, err = amqp.Dial(connectString)
 	if err != nil {
 		return nil, fmt.Errorf("Dial: %s", err)
 	}
