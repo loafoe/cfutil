@@ -13,7 +13,7 @@ type Consumer struct {
 	done    chan error
 }
 
-func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag string) (*Consumer, error) {
+func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag string, handlerFunc ConsumerHandlerFunc) (*Consumer, error) {
 	connectString := ""
 	var err error
 	appEnv, _ := Current()
@@ -99,7 +99,7 @@ func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag strin
 		return nil, fmt.Errorf("Queue Consume: %s", err)
 	}
 
-	go handle(deliveries, c.done)
+	go handle(handlerFunc, deliveries, c.done)
 
 	return c, nil
 }
@@ -120,15 +120,22 @@ func (c *Consumer) Shutdown() error {
 	return <-c.done
 }
 
-func handle(deliveries <-chan amqp.Delivery, done chan error) {
+type ConsumerHandlerFunc func(delivery amqp.Delivery) error
+
+func DummyConsumerHandler(d amqp.Delivery) error {
+	log.Printf(
+		"got %dB delivery: [%v] %q",
+		len(d.Body),
+		d.DeliveryTag,
+		d.Body,
+	)
+	d.Ack(false)
+	return nil
+}
+
+func handle(handler ConsumerHandlerFunc, deliveries <-chan amqp.Delivery, done chan error) {
 	for d := range deliveries {
-		log.Printf(
-			"got %dB delivery: [%v] %q",
-			len(d.Body),
-			d.DeliveryTag,
-			d.Body,
-		)
-		d.Ack(false)
+		handler(d)
 	}
 	log.Printf("handle: deliveries channel closed")
 	done <- nil
