@@ -91,6 +91,17 @@ func NewConsulClient() (*consul.Client, error) {
 	return client, nil
 }
 
+func GetConsulKey(mooncoreKey string) (string, error) {
+	ns := ConsulNamespace()
+	key := "mooncore/" + ns + "/" + mooncoreKey
+	client, err := NewConsulClient()
+	if err != nil {
+		return "", err
+	}
+	kvPair, _, err := client.KV().Get(key, nil)
+	return string(kvPair.Value), err
+}
+
 func ConsulNamespace() string {
 	return os.Getenv("CONSUL_NAMESPACE")
 }
