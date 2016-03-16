@@ -46,6 +46,8 @@ func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag strin
 		return nil, fmt.Errorf("Channel: %s", err)
 	}
 
+	c.channel.Qos(2, 0, true)
+
 	log.Printf("got Channel, declaring Exchange (%q)", exchange)
 	if err = c.channel.ExchangeDeclare(
 		exchange,     // name of the exchange
