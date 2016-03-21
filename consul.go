@@ -99,7 +99,10 @@ func GetConsulKey(mooncoreKey string) (string, error) {
 		return "", err
 	}
 	kvPair, _, err := client.KV().Get(key, nil)
-	return string(kvPair.Value), err
+	if err != nil {
+		return "", err
+	}
+	return string(kvPair.Value), nil
 }
 
 func ConsulNamespace() string {
