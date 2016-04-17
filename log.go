@@ -31,7 +31,7 @@ type logMessage struct {
 	Severity    string        `json:"sev,omitempty"`
 	Transaction string        `json:"trns,omitempty"`
 	User        string        `json:"usr,omitempty"`
-	Server      string        `json:"srv,omitemptyv"`
+	Server      string        `json:"srv,omitempty"`
 	Service     string        `json:"service,omitempty"`
 	Instance    string        `json:"inst,omitempty"`
 	Category    string        `json:"cat,omitempty"`
