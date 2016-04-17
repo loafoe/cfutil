@@ -19,6 +19,15 @@ func IsFirstInstance() bool {
 	return false
 }
 
+// GetApplicationName() returns the name of the app within Cloudfoundry
+func GetApplicationName() (string, error) {
+	appEnv, err := Current()
+	if err != nil {
+		return "unknown", err
+	}
+	return appEnv.Name, nil
+}
+
 // GetHostname() returns the (first) hostname designated to your app within Cloudfoundry
 func GetHostname() (string, error) {
 	appEnv, err := Current()
