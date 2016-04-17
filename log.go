@@ -20,23 +20,23 @@ type HSDPFormatter struct {
 }
 
 type Value struct {
-	Message string `json:"string"`
+	Message string `json:"message"`
 }
 
 type logMessage struct {
 	App         string        `json:"app"`
 	Value       Value         `json:"val"`
-	Version     string        `json:"ver"`
-	Event       string        `json:"evt"`
-	Severity    string        `json:"sev`
-	Transaction string        `json:"trns"`
-	User        string        `json:"usr"`
-	Server      string        `json:"srv"`
-	Service     string        `json:"service"`
-	Instance    string        `json:"inst"`
-	Category    string        `json:"cat"`
-	Component   string        `json:"cmp"`
-	Time        string        `json:"time"`
+	Version     string        `json:"ver,omitempty"`
+	Event       string        `json:"evt,omitempty"`
+	Severity    string        `json:"sev,omitempty"`
+	Transaction string        `json:"trns,omitempty"`
+	User        string        `json:"usr,omitempty"`
+	Server      string        `json:"sr,omitemptyv"`
+	Service     string        `json:"service,omitempty"`
+	Instance    string        `json:"inst,omitempty"`
+	Category    string        `json:"cat,omitempty"`
+	Component   string        `json:"cmp,omitempty"`
+	Time        string        `json:"time,omitempty"`
 	Fields      logrus.Fields `json:"fields,omitempty"`
 }
 
