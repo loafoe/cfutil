@@ -11,7 +11,6 @@ import (
 	cfenv "github.com/cloudfoundry-community/go-cfenv"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // PostgreSQL driver
-	"regexp"
 )
 
 //
@@ -23,7 +22,7 @@ func NewConnection(driver, name string) (conn *sqlx.DB, connectString string, er
 	switch driver {
 	case "postgres":
 		if name == "" {
-			connectString, err = firstMatchingService(appEnv, driver)
+			connectString, err = firstMatchingServiceURI(appEnv, driver)
 		} else {
 			connectString, err = postgresConnectString(appEnv, name)
 		}
@@ -48,35 +47,4 @@ func postgresConnectString(env *cfenv.App, serviceName string) (string, error) {
 		return "", errors.New("Postgres credentials not available")
 	}
 	return str, nil
-}
-
-func serviceByName(env *cfenv.App, serviceName string) (string, error) {
-	service, err := env.Services.WithName(serviceName)
-	if err != nil {
-		return "", err
-	}
-	str, ok := service.Credentials["uri"].(string)
-	if !ok {
-		return "", errors.New("Service credentials not available")
-	}
-	return str, nil
-}
-
-func firstMatchingService(env *cfenv.App, schema string) (string, error) {
-	regex, err := regexp.Compile("^" + schema + "://")
-	if err != nil {
-		return "", err
-	}
-	for _, services := range env.Services {
-		for _, service := range services {
-			str, ok := service.Credentials["uri"].(string)
-			if !ok {
-				continue
-			}
-			if regex.MatchString(str) {
-				return str, nil
-			}
-		}
-	}
-	return "", fmt.Errorf("No matching service found for '%s'", schema)
 }

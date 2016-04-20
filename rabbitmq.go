@@ -1,10 +1,37 @@
 package cfutil
 
 import (
+	"errors"
 	"fmt"
+	cfenv "github.com/cloudfoundry-community/go-cfenv"
+	"github.com/mitchellh/mapstructure"
 	"github.com/streadway/amqp"
 	"log"
 )
+
+func RabbitMQAdminURI(serviceName string) (string, error) {
+	appEnv, _ := Current()
+	service := &cfenv.Service{}
+	err := errors.New("")
+	if serviceName != "" {
+		service, err = serviceByName(appEnv, serviceName)
+	} else {
+		service, err = firstMatchingService(appEnv, "amqp")
+	}
+	if err != nil {
+		return "", err
+	}
+	management := map[string]string{}
+
+	if service.Credentials["management"] != nil {
+		err := mapstructure.Decode(service.Credentials["management"], &management)
+		if err != nil {
+			return "", err
+		}
+		return management["uri"], nil
+	}
+	return "", fmt.Errorf("No management URI defined")
+}
 
 type Consumer struct {
 	conn    *amqp.Connection
@@ -18,9 +45,9 @@ func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag strin
 	var err error
 	appEnv, _ := Current()
 	if serviceName != "" {
-		connectString, err = serviceByName(appEnv, serviceName)
+		connectString, err = serviceURIByName(appEnv, serviceName)
 	} else {
-		connectString, err = firstMatchingService(appEnv, "amqp")
+		connectString, err = firstMatchingServiceURI(appEnv, "amqp")
 	}
 
 	c := &Consumer{

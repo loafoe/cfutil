@@ -2,7 +2,10 @@ package cfutil
 
 import (
 	"errors"
+	"fmt"
+	cfenv "github.com/cloudfoundry-community/go-cfenv"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -45,4 +48,55 @@ func GetHostname() (string, error) {
 // Getenv(name) returns the environment variable value of ENV `name`
 func Getenv(name string) string {
 	return os.Getenv(name)
+}
+
+func serviceByName(env *cfenv.App, serviceName string) (*cfenv.Service, error) {
+	service, err := env.Services.WithName(serviceName)
+	if err != nil {
+		return nil, err
+	}
+	return service, nil
+}
+
+func serviceURIByName(env *cfenv.App, serviceName string) (string, error) {
+	service, err := serviceByName(env, serviceName)
+	if err != nil {
+		return "", err
+	}
+	str, ok := service.Credentials["uri"].(string)
+	if !ok {
+		return "", errors.New("Service credentials not available")
+	}
+	return str, nil
+}
+
+func firstMatchingService(env *cfenv.App, schema string) (*cfenv.Service, error) {
+	regex, err := regexp.Compile("^" + schema + "://")
+	if err != nil {
+		return nil, err
+	}
+	for _, services := range env.Services {
+		for _, service := range services {
+			str, ok := service.Credentials["uri"].(string)
+			if !ok {
+				continue
+			}
+			if regex.MatchString(str) {
+				return &service, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("No matching service found for '%s'", schema)
+}
+
+func firstMatchingServiceURI(env *cfenv.App, schema string) (string, error) {
+	service, err := firstMatchingService(env, schema)
+	if err != nil {
+		return "", err
+	}
+	str, ok := service.Credentials["uri"].(string)
+	if !ok {
+		return "", errors.New("Service credentials not available")
+	}
+	return str, nil
 }
