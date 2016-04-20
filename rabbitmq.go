@@ -21,16 +21,24 @@ func RabbitMQAdminURI(serviceName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	protocols := map[string]interface{}{}
 	management := map[string]string{}
 
-	if service.Credentials["management"] != nil {
-		err := mapstructure.Decode(service.Credentials["management"], &management)
+	if service.Credentials["protocols"] != nil {
+		err := mapstructure.Decode(service.Credentials["protocols"], &protocols)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("Error decoding protocols section")
 		}
-		return management["uri"], nil
+		if protocols["management"] != nil {
+			err = mapstructure.Decode(protocols["management"], &management)
+			if err != nil {
+				return "", fmt.Errorf("Error decoding management section")
+			}
+			return management["uri"], nil
+		}
+		return "", fmt.Errorf("No mangement section defined")
 	}
-	return "", fmt.Errorf("No management URI defined")
+	return "", fmt.Errorf("No protocols section defined")
 }
 
 type Consumer struct {
