@@ -27,12 +27,13 @@ func RabbitMQAdminURI(serviceName string) (string, error) {
 	if service.Credentials["protocols"] != nil {
 		err := mapstructure.Decode(service.Credentials["protocols"], &protocols)
 		if err != nil {
-			return "", fmt.Errorf("Error decoding protocols section")
+			return "", fmt.Errorf("Error decoding protocols section: %s", err.Error())
 		}
 		if protocols["management"] != nil {
+			fmt.Printf("Management dump: %#v", protocols["management"])
 			err = mapstructure.Decode(protocols["management"], &management)
 			if err != nil {
-				return "", fmt.Errorf("Error decoding management section")
+				return "", fmt.Errorf("Error decoding management section: %s", err.Error())
 			}
 			return management["uri"], nil
 		}
