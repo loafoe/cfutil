@@ -22,7 +22,7 @@ func RabbitMQAdminURI(serviceName string) (string, error) {
 		return "", err
 	}
 	protocols := map[string]interface{}{}
-	management := map[string]string{}
+	management := map[string]interface{}{}
 
 	if service.Credentials["protocols"] != nil {
 		err := mapstructure.Decode(service.Credentials["protocols"], &protocols)
@@ -30,12 +30,18 @@ func RabbitMQAdminURI(serviceName string) (string, error) {
 			return "", fmt.Errorf("Error decoding protocols section: %s", err.Error())
 		}
 		if protocols["management"] != nil {
-			fmt.Printf("Management dump: %#v", protocols["management"])
 			err = mapstructure.Decode(protocols["management"], &management)
 			if err != nil {
 				return "", fmt.Errorf("Error decoding management section: %s", err.Error())
 			}
-			return management["uri"], nil
+			if management["uri"] != nil {
+				str, ok := management["uri"].(string)
+				if !ok {
+					return "", fmt.Errorf("Management URI not a string")
+				}
+				return str, nil
+			}
+			return "", fmt.Errorf("Management URI not found")
 		}
 		return "", fmt.Errorf("No mangement section defined")
 	}
