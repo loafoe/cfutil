@@ -100,3 +100,14 @@ func firstMatchingServiceURI(env *cfenv.App, schema string) (string, error) {
 	}
 	return str, nil
 }
+
+func firstMatchingServiceByCredential(env *cfenv.App, credential string) (*cfenv.Service, error) {
+	for _, services := range env.Services {
+		for _, service := range services {
+			if service.Credentials[credential] != nil {
+				return &service, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("No matching service found that contains credential '%s'", credential)
+}
