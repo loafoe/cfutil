@@ -89,6 +89,25 @@ func firstMatchingService(env *cfenv.App, schema string) (*cfenv.Service, error)
 	return nil, fmt.Errorf("No matching service found for '%s'", schema)
 }
 
+func firstMatchingServiceURN(env *cfenv.App, urn string) (*cfenv.Service, error) {
+	regex, err := regexp.Compile("^" + urn)
+	if err != nil {
+		return nil, err
+	}
+	for _, services := range env.Services {
+		for _, service := range services {
+			str, ok := service.Credentials["uri"].(string)
+			if !ok {
+				continue
+			}
+			if regex.MatchString(str) {
+				return &service, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("No matching service found for urn '%s'", urn)
+}
+
 func firstMatchingServiceURI(env *cfenv.App, schema string) (string, error) {
 	service, err := firstMatchingService(env, schema)
 	if err != nil {
