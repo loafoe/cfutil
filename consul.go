@@ -34,7 +34,7 @@ func DiscoverServiceURL(serviceName, tags string) (string, error) {
 
 }
 
-func createURLFromServiceCatalog(catalog *consul.CatalogService) (string, error) {
+func CreateURLFromServiceCatalog(catalog *consul.CatalogService) (string, error) {
 	var serviceURL url.URL
 	if catalog.ServicePort == 443 {
 		serviceURL.Scheme = "https"
