@@ -28,7 +28,7 @@ func DiscoverServiceURL(serviceName, tags string) (string, error) {
 		return "", fmt.Errorf("Service `%s` not found: %s", serviceName, err)
 	}
 	if len(services) > 0 {
-		return createURLFromServiceCatalog(services[0])
+		return CreateURLFromServiceCatalog(services[0])
 	}
 	return "", fmt.Errorf("Service `%s` not found", serviceName)
 
