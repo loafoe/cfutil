@@ -72,6 +72,7 @@ func ServiceRegister(name string, path string, tags ...string) error {
 	hostWithoutPort := splitted[0]
 	if len(splitted) > 1 {
 		if addedPort, err := strconv.Atoi(splitted[1]); err == nil && addedPort != port {
+			fmt.Printf("Forcing port from %d to %d", port, addedPort)
 			port = addedPort
 		}
 	}
