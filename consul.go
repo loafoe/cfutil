@@ -10,12 +10,20 @@ import (
 
 // Services() returns the list of services available from the
 // Consul cluster
-func Services() (map[string]*consul.AgentService, error) {
+func Services() ([]string, error) {
 	client, err := NewConsulClient()
 	if err != nil {
 		return nil, err
 	}
-	return client.Agent().Services()
+	catalogServices, _, err := client.Catalog().Services(nil)
+	if err != nil {
+		return []string{}, err
+	}
+	services := make([]string, len(catalogServices))
+	for k := range catalogServices {
+		services = append(services, k)
+	}
+	return services, nil
 }
 
 func DiscoverServiceURL(serviceName, tags string) (string, error) {
