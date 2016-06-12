@@ -19,7 +19,7 @@ func Services() ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-	services := make([]string, len(catalogServices))
+	var services []string
 	for k := range catalogServices {
 		services = append(services, k)
 	}
