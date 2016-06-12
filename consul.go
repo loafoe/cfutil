@@ -67,15 +67,19 @@ func ServiceRegister(name string, path string, tags ...string) error {
 	}
 	schema, port := schemaAndPortForServices()
 
-	appURL, _ := url.Parse(appEnv.ApplicationURIs[0])
+	appURL, _ := url.Parse(schema + "://" + appEnv.ApplicationURIs[0])
 	splitted := strings.Split(appURL.Host, ":")
 	hostWithoutPort := splitted[0]
+	if hostWithoutPort == "" {
+		hostWithoutPort = "localhost"
+	}
 	if len(splitted) > 1 {
-		if addedPort, err := strconv.Atoi(splitted[1]); err == nil && addedPort != port {
-			fmt.Printf("Forcing port from %d to %d", port, addedPort)
+		addedPort, err := strconv.Atoi(splitted[1])
+		if err == nil && addedPort != port {
 			port = addedPort
 		}
 	}
+
 	err = client.Agent().ServiceRegister(&consul.AgentServiceRegistration{
 		Name:    name,
 		Address: hostWithoutPort,
