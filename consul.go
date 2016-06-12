@@ -6,6 +6,8 @@ import (
 	consul "github.com/hashicorp/consul/api"
 	"net/url"
 	"os"
+	"strconv"
+	"strings"
 )
 
 // Services() returns the list of services available from the
@@ -64,13 +66,22 @@ func ServiceRegister(name string, path string, tags ...string) error {
 		return err
 	}
 	schema, port := schemaAndPortForServices()
+
+	appURL, _ := url.Parse(appEnv.ApplicationURIs[0])
+	splitted := strings.Split(appURL.Host, ":")
+	hostWithoutPort := splitted[0]
+	if len(splitted) > 1 {
+		if addedPort, err := strconv.Atoi(splitted[1]); err == nil && addedPort != port {
+			port = addedPort
+		}
+	}
 	err = client.Agent().ServiceRegister(&consul.AgentServiceRegistration{
 		Name:    name,
-		Address: appEnv.ApplicationURIs[0],
+		Address: hostWithoutPort,
 		Port:    port,
 		Tags:    tags,
 		Check: &consul.AgentServiceCheck{
-			HTTP:     fmt.Sprintf(schema + "://" + appEnv.ApplicationURIs[0] + path),
+			HTTP:     fmt.Sprintf(schema + "://" + appURL.Host + path),
 			Interval: "60s",
 		},
 	})
