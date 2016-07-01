@@ -55,12 +55,22 @@ type Consumer struct {
 	done    chan error
 }
 
-func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag string, handlerFunc ConsumerHandlerFunc) (*Consumer, error) {
+type ConsumerConfig struct {
+	ServiceName  string
+	Exchange     string
+	ExchangeType string
+	QueueName    string
+	RoutingKey   string
+	CTag         string
+	HandlerFunc  ConsumerHandlerFunc
+}
+
+func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 	connectString := ""
 	var err error
 	appEnv, _ := Current()
-	if serviceName != "" {
-		connectString, err = serviceURIByName(appEnv, serviceName)
+	if config.ServiceName != "" {
+		connectString, err = serviceURIByName(appEnv, config.ServiceName)
 	} else {
 		connectString, err = firstMatchingServiceURI(appEnv, "amqp")
 	}
@@ -68,7 +78,7 @@ func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag strin
 	c := &Consumer{
 		conn:    nil,
 		channel: nil,
-		tag:     ctag,
+		tag:     config.CTag,
 		done:    make(chan error),
 	}
 
@@ -93,41 +103,41 @@ func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag strin
 		log.Printf("error setting Qos: %s", err)
 	}
 
-	log.Printf("got Channel, declaring Exchange (%q)", exchange)
+	log.Printf("got Channel, declaring Exchange (%q)", config.Exchange)
 	if err = c.channel.ExchangeDeclare(
-		exchange,     // name of the exchange
-		exchangeType, // type
-		true,         // durable
-		false,        // delete when complete
-		false,        // internal
-		false,        // noWait
-		nil,          // arguments
+		config.Exchange,     // name of the exchange
+		config.ExchangeType, // type
+		true,                // durable
+		false,               // delete when complete
+		false,               // internal
+		false,               // noWait
+		nil,                 // arguments
 	); err != nil {
 		return nil, fmt.Errorf("Exchange Declare: %s", err)
 	}
 
-	log.Printf("declared Exchange, declaring Queue %q", queueName)
+	log.Printf("declared Exchange, declaring Queue %q", config.QueueName)
 	queue, err := c.channel.QueueDeclare(
-		queueName, // name of the queue
-		true,      // durable
-		false,     // delete when usused
-		false,     // exclusive
-		false,     // noWait
-		nil,       // arguments
+		config.QueueName, // name of the queue
+		true,             // durable
+		false,            // delete when usused
+		false,            // exclusive
+		false,            // noWait
+		nil,              // arguments
 	)
 	if err != nil {
 		return nil, fmt.Errorf("Queue Declare: %s", err)
 	}
 
 	log.Printf("declared Queue (%q %d messages, %d consumers), binding to Exchange (key %q)",
-		queue.Name, queue.Messages, queue.Consumers, key)
+		queue.Name, queue.Messages, queue.Consumers, config.RoutingKey)
 
 	if err = c.channel.QueueBind(
-		queue.Name, // name of the queue
-		key,        // bindingKey
-		exchange,   // sourceExchange
-		false,      // noWait
-		nil,        // arguments
+		queue.Name,        // name of the queue
+		config.RoutingKey, // bindingKey
+		config.Exchange,   // sourceExchange
+		false,             // noWait
+		nil,               // arguments
 	); err != nil {
 		return nil, fmt.Errorf("Queue Bind: %s", err)
 	}
@@ -146,7 +156,7 @@ func NewConsumer(serviceName, exchange, exchangeType, queueName, key, ctag strin
 		return nil, fmt.Errorf("Queue Consume: %s", err)
 	}
 
-	go handle(handlerFunc, deliveries, c.done)
+	go handle(config.HandlerFunc, deliveries, c.done)
 
 	return c, nil
 }
