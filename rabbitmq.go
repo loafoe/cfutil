@@ -55,6 +55,18 @@ type Consumer struct {
 	done    chan error
 }
 
+type Producer struct {
+	conn    *amqp.Connection
+	channel *amqp.Channel
+	done    chan error
+}
+
+type ProducerConfig struct {
+	ServiceName  string
+	Exchange     string
+	ExchangeType string
+}
+
 type ConsumerConfig struct {
 	ServiceName  string
 	Exchange     string
@@ -63,6 +75,62 @@ type ConsumerConfig struct {
 	RoutingKey   string
 	CTag         string
 	HandlerFunc  ConsumerHandlerFunc
+}
+
+func (p *Producer) Publish(exchange, routingKey string, msg amqp.Publishing) error {
+	if err := p.channel.Publish(
+		exchange,   // publish to an exchange
+		routingKey, // routing to 0 or more queues
+		false,      // mandatory
+		false,      // immediate
+		msg,
+	); err != nil {
+		return fmt.Errorf("Exchange Publish: %s", err)
+	}
+	return nil
+}
+
+func (p *Producer) Close() {
+	p.conn.Close()
+}
+
+func NewProducer(config ProducerConfig) (*Producer, error) {
+	connectString := ""
+	var err error
+	appEnv, _ := Current()
+	if config.ServiceName != "" {
+		connectString, err = serviceURIByName(appEnv, config.ServiceName)
+	} else {
+		connectString, err = firstMatchingServiceURI(appEnv, "amqp")
+	}
+
+	p := &Producer{
+		conn:    nil,
+		channel: nil,
+		done:    make(chan error),
+	}
+	p.conn, err = amqp.Dial(connectString)
+	if err != nil {
+		return nil, fmt.Errorf("Dial: %s", err)
+	}
+	p.channel, err = p.conn.Channel()
+	if err != nil {
+		p.conn.Close()
+		return nil, fmt.Errorf("Channel: %s", err)
+	}
+	if err = p.channel.ExchangeDeclare(
+		config.Exchange,     // name
+		config.ExchangeType, // type
+		true,                // durable
+		false,               // auto-deleted
+		false,               // internal
+		false,               // noWait
+		nil,                 // arguments
+	); err != nil {
+		p.conn.Close()
+		return nil, fmt.Errorf("Exchange Declare: %s", err)
+	}
+	return p, nil
 }
 
 func NewConsumer(config ConsumerConfig) (*Consumer, error) {
@@ -95,6 +163,7 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 	log.Printf("got Connection, getting Channel")
 	c.channel, err = c.conn.Channel()
 	if err != nil {
+		c.conn.Close()
 		return nil, fmt.Errorf("Channel: %s", err)
 	}
 
@@ -113,6 +182,7 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 		false,               // noWait
 		nil,                 // arguments
 	); err != nil {
+		c.conn.Close()
 		return nil, fmt.Errorf("Exchange Declare: %s", err)
 	}
 
@@ -139,6 +209,7 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 		false,             // noWait
 		nil,               // arguments
 	); err != nil {
+		c.conn.Close()
 		return nil, fmt.Errorf("Queue Bind: %s", err)
 	}
 
@@ -153,6 +224,7 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 		nil,        // arguments
 	)
 	if err != nil {
+		c.conn.Close()
 		return nil, fmt.Errorf("Queue Consume: %s", err)
 	}
 
