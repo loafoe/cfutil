@@ -1,7 +1,7 @@
 package cfutil
 
 import (
-	"github.com/mattes/migrate/migrate"
+	"github.com/gemnasium/migrate/migrate"
 )
 
 // Migrate() starts a database migration for the given
