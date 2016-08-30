@@ -132,6 +132,22 @@ func GetConsulKey(mooncoreKey string) (string, error) {
 	return string(kvPair.Value), nil
 }
 
+func ConsulDatacenter() (string, error) {
+	client, err := NewConsulClient()
+	if err != nil {
+		return "", err
+	}
+	self, err := client.Agent().Self()
+	if err != nil {
+		return "", err
+	}
+	dc, ok := self["Config"]["Datacenter"].(string)
+	if !ok {
+		return "", fmt.Errorf("Invalid lookup for Datacenter")
+	}
+	return dc, nil
+}
+
 func ConsulNamespace() string {
 	return os.Getenv("CONSUL_NAMESPACE")
 }
