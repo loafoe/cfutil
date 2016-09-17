@@ -3,7 +3,6 @@ package cfutil
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/jeffail/gabs"
 	"github.com/satori/go.uuid"
 	"os"
@@ -83,7 +82,6 @@ func localVcapServices() string {
 			}
 			serviceJSON.Set(name, "name")
 			serviceJSON.Set(uri, "credentials", "uri")
-			log.Print("Local service: ", name)
 			jsonObj.ArrayAppendP(serviceJSON.Data(), service)
 		}
 	}

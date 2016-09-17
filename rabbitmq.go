@@ -6,7 +6,6 @@ import (
 	cfenv "github.com/cloudfoundry-community/go-cfenv"
 	"github.com/mitchellh/mapstructure"
 	"github.com/streadway/amqp"
-	"log"
 )
 
 func RabbitMQAdminURI(serviceName string) (string, error) {
@@ -150,17 +149,17 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 		done:    make(chan error),
 	}
 
-	log.Printf("dialing %q", connectString)
+	log.Debug(nil, "dialing %q", connectString)
 	c.conn, err = amqp.Dial(connectString)
 	if err != nil {
 		return nil, fmt.Errorf("Dial: %s", err)
 	}
 
 	go func() {
-		fmt.Printf("closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
+		log.Info(nil, "closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
 	}()
 
-	log.Printf("got Connection, getting Channel")
+	log.Debug(nil, "got Connection, getting Channel")
 	c.channel, err = c.conn.Channel()
 	if err != nil {
 		c.conn.Close()
@@ -169,10 +168,10 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 
 	err = c.channel.Qos(2, 0, false)
 	if err != nil {
-		log.Printf("error setting Qos: %s", err)
+		log.Error(nil, "error setting Qos: %s", err)
 	}
 
-	log.Printf("got Channel, declaring Exchange (%q)", config.Exchange)
+	log.Info(nil, "got Channel, declaring Exchange (%q)", config.Exchange)
 	if err = c.channel.ExchangeDeclare(
 		config.Exchange,     // name of the exchange
 		config.ExchangeType, // type
@@ -186,7 +185,7 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 		return nil, fmt.Errorf("Exchange Declare: %s", err)
 	}
 
-	log.Printf("declared Exchange, declaring Queue %q", config.QueueName)
+	log.Info(nil, "declared Exchange, declaring Queue %q", config.QueueName)
 	queue, err := c.channel.QueueDeclare(
 		config.QueueName, // name of the queue
 		true,             // durable
@@ -199,7 +198,7 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 		return nil, fmt.Errorf("Queue Declare: %s", err)
 	}
 
-	log.Printf("declared Queue (%q %d messages, %d consumers), binding to Exchange (key %q)",
+	log.Info(nil, "declared Queue (%q %d messages, %d consumers), binding to Exchange (key %q)",
 		queue.Name, queue.Messages, queue.Consumers, config.RoutingKey)
 
 	if err = c.channel.QueueBind(
@@ -213,7 +212,7 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 		return nil, fmt.Errorf("Queue Bind: %s", err)
 	}
 
-	log.Printf("Queue bound to Exchange, starting Consume (consumer tag %q)", c.tag)
+	log.Info(nil, "Queue bound to Exchange, starting Consume (consumer tag %q)", c.tag)
 	deliveries, err := c.channel.Consume(
 		queue.Name, // name
 		c.tag,      // consumerTag,
@@ -243,7 +242,7 @@ func (c *Consumer) Shutdown() error {
 		return fmt.Errorf("AMQP connection close error: %s", err)
 	}
 
-	defer log.Printf("AMQP shutdown OK")
+	defer log.Info(nil, "AMQP shutdown OK")
 
 	// wait for handle() to exit
 	return <-c.done
@@ -252,7 +251,7 @@ func (c *Consumer) Shutdown() error {
 type ConsumerHandlerFunc func(delivery amqp.Delivery) error
 
 func DummyConsumerHandler(d amqp.Delivery) error {
-	log.Printf(
+	log.Debug(nil,
 		"got %dB delivery: [%v] %q",
 		len(d.Body),
 		d.DeliveryTag,
@@ -266,6 +265,6 @@ func handle(handler ConsumerHandlerFunc, deliveries <-chan amqp.Delivery, done c
 	for d := range deliveries {
 		handler(d)
 	}
-	log.Printf("handle: deliveries channel closed")
+	log.Info(nil, "handle: deliveries channel closed")
 	done <- nil
 }

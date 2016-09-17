@@ -1,21 +1,31 @@
 package cfutil
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/Sirupsen/logrus"
 )
 
-func NewLogger() *logrus.Logger {
-	logger := logrus.New()
-	appName, _ := GetApplicationName()
-	formatter := &HSDPFormatter{}
-	formatter.Init(appName, "", "", "")
-	logger.Formatter = formatter
-	return logger
+type Logger interface {
+	Debug(c context.Context, format string, args ...interface{})
+	Info(c context.Context, format string, args ...interface{})
+	Warning(c context.Context, format string, args ...interface{})
+	Error(c context.Context, format string, args ...interface{})
+	Critical(c context.Context, format string, args ...interface{})
 }
 
-type HSDPFormatter struct {
+func NewLogger() Logger {
+	newLogger := HSDPLogger{}
+	appName, _ := GetApplicationName()
+	newLogger.Init(appName, "", "", "")
+	return newLogger
+}
+
+var log = NewLogger()
+
+type HSDPLogger struct {
+	logger   *logrus.Logger
 	template logMessage
 }
 
@@ -40,14 +50,36 @@ type logMessage struct {
 	Fields      logrus.Fields `json:"fields,omitempty"`
 }
 
-func (f *HSDPFormatter) Init(app, version, instance, component string) {
+func (f *HSDPLogger) Init(app, version, instance, component string) {
+	f.logger = logrus.New()
+	f.logger.Formatter = f
 	f.template.App = app
 	f.template.Version = version
 	f.template.Instance = instance
 	f.template.Component = component
 }
 
-func (f *HSDPFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+func (f HSDPLogger) Debug(c context.Context, format string, args ...interface{}) {
+	f.logger.Debugf(format, args...)
+}
+
+func (f HSDPLogger) Info(c context.Context, format string, args ...interface{}) {
+	f.logger.Infof(format, args...)
+}
+
+func (f HSDPLogger) Warning(c context.Context, format string, args ...interface{}) {
+	f.logger.Warningf(format, args...)
+}
+
+func (f HSDPLogger) Error(c context.Context, format string, args ...interface{}) {
+	f.logger.Errorf(format, args...)
+}
+
+func (f HSDPLogger) Critical(c context.Context, format string, args ...interface{}) {
+	f.logger.Fatalf(format, args...)
+}
+
+func (f *HSDPLogger) Format(entry *logrus.Entry) ([]byte, error) {
 	data := f.template
 	data.Time = entry.Time.Format(logrus.DefaultTimestampFormat)
 	data.Value.Message = entry.Message

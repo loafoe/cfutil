@@ -127,7 +127,7 @@ func GetConsulKey(mooncoreKey string) (string, error) {
 		return "", err
 	}
 	if kvPair == nil || kvPair.Value == nil {
-		return "", fmt.Errorf("Key not found")
+		return "", fmt.Errorf("Key not found: %s", mooncoreKey)
 	}
 	return string(kvPair.Value), nil
 }
