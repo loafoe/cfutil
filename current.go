@@ -11,6 +11,7 @@ func Current() (appEnv *cfenv.App, err error) {
 		os.Setenv("VCAP_APPLICATION", localVcapApplication())
 		os.Setenv("MEMORY_LIMIT", localMemoryLimit())
 		os.Setenv("VCAP_SERVICES", localVcapServices())
+		os.Setenv("CF_LOCAL", "true")
 		appEnv, err = cfenv.Current()
 	}
 	return appEnv, err

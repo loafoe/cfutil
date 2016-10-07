@@ -9,6 +9,10 @@ import (
 )
 
 func RabbitMQAdminURI(serviceName string) (string, error) {
+	if IsLocal() {
+		return "http://guest:guest@localhost:15672", nil
+	}
+
 	appEnv, _ := Current()
 	service := &cfenv.Service{}
 	err := errors.New("")

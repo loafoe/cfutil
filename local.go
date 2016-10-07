@@ -82,10 +82,15 @@ func localVcapServices() string {
 			}
 			serviceJSON.Set(name, "name")
 			serviceJSON.Set(uri, "credentials", "uri")
+			fmt.Printf("Add local service %s: %s\n", name, uri)
 			jsonObj.ArrayAppendP(serviceJSON.Data(), service)
 		}
 	}
 	return jsonObj.String()
+}
+
+func IsLocal() bool {
+	return os.Getenv("CF_LOCAL") == "true"
 }
 
 // ListenString() returns the listen string based on the `PORT` environment variable value
