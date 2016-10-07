@@ -13,6 +13,7 @@ type Logger interface {
 	Warning(c context.Context, format string, args ...interface{})
 	Error(c context.Context, format string, args ...interface{})
 	Critical(c context.Context, format string, args ...interface{})
+	Raw(c context.Context, rawMessage string)
 }
 
 func NewLogger() Logger {
@@ -57,6 +58,10 @@ func (f *HSDPLogger) Init(app, version, instance, component string) {
 	f.template.Version = version
 	f.template.Instance = instance
 	f.template.Component = component
+}
+
+func (f HSDPLogger) Raw(c context.Context, rawString string) {
+	fmt.Print(rawString)
 }
 
 func (f HSDPLogger) Debug(c context.Context, format string, args ...interface{}) {
