@@ -76,7 +76,6 @@ func localVcapServices() string {
 		uris := os.Getenv(env)
 		items := strings.Split(uris, "|")
 		for _, item := range items {
-			fmt.Printf("Processing: %s\n", item)
 			if item == "" {
 				continue
 			}
