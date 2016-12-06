@@ -3,12 +3,13 @@ package cfutil
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jeffail/gabs"
-	"github.com/satori/go.uuid"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/jeffail/gabs"
+	"github.com/satori/go.uuid"
 )
 
 // Struct that simulates the Cloudfoundry application environment
@@ -69,21 +70,26 @@ func localVcapServices() string {
 		"sentry",
 	}
 	jsonObj := gabs.New()
+	jsonObj.Array("user-provided")
 	for _, service := range supportedServices {
 		env := "CF_LOCAL_" + strings.ToUpper(service)
-		uri := os.Getenv(env)
-		if uri != "" {
-			jsonObj.Array(service)
+		uris := os.Getenv(env)
+		items := strings.Split(uris, "|")
+		for _, item := range items {
+			if item == "" {
+				continue
+			}
 			serviceJSON := gabs.New()
 			name := service
-			if components := strings.Split(uri, ","); len(components) > 1 {
+			uri := item
+			if components := strings.Split(item, ","); len(components) > 1 {
 				name = components[0]
 				uri = components[1]
 			}
 			serviceJSON.Set(name, "name")
 			serviceJSON.Set(uri, "credentials", "uri")
 			fmt.Printf("Add local service %s: %s\n", name, uri)
-			jsonObj.ArrayAppendP(serviceJSON.Data(), service)
+			jsonObj.ArrayAppendP(serviceJSON.Data(), "user-provided")
 		}
 	}
 	return jsonObj.String()
