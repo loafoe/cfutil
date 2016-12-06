@@ -1,13 +1,13 @@
 package cfutil
 
 import (
-	"errors"
 	"fmt"
-	consul "github.com/hashicorp/consul/api"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
+
+	consul "github.com/hashicorp/consul/api"
 )
 
 // Services() returns the list of services available from the
