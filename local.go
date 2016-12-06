@@ -79,6 +79,7 @@ func localVcapServices() string {
 			if item == "" {
 				continue
 			}
+			fmt.Printf("Processing: %s", item)
 			serviceJSON := gabs.New()
 			name := service
 			uri := item
