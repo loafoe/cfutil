@@ -160,7 +160,7 @@ func consulDialstring(serviceName string) (string, string, error) {
 			return parsed.Scheme, parsed.Host, nil
 		}
 	}
-	return "", "", errors.New("CONSUL_MASTER not found or invalid url")
+	return "", "", fmt.Errorf("CONSUL_MASTER not found or invalid url: %s", consulMaster)
 }
 
 func schemaAndPortForServices() (string, int) {
