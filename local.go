@@ -101,5 +101,9 @@ func IsLocal() bool {
 
 // ListenString() returns the listen string based on the `PORT` environment variable value
 func ListenString() string {
-	return ":" + os.Getenv("PORT")
+	port = os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	return ":" + port
 }
