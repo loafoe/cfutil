@@ -106,7 +106,4 @@ func ListenString() string {
 		port = "8080"
 	}
 	return ":" + port
-	os.Getenv("PORT")
-	rt
-
 }
