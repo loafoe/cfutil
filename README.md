@@ -8,8 +8,12 @@ Simulating Cloudfoundry Services
 =================================
 When running locally the app looks for the following environment variables
 
-* CF_LOCAL_POSTGRES
-* CF_LOCAL_SMTP
-* CF_LOCAL_RABBITMQ
+* CF\_LOCAL\_POSTGRES
+* CF\_LOCAL\_SMTP
+* CF\_LOCAL\_RABBITMQ
 
 Services are setup using the variable values as the URI. This allows you to use local Postgres, SMTP and RabbitMQ services just as you would in an actual Cloudfoundry deployment
+
+License
+=======
+MIT
