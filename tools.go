@@ -22,6 +22,16 @@ func IsFirstInstance() bool {
 	return false
 }
 
+// GetAppIndex() returns the app index when running in Cloudfoundry.
+func GetAppIndex() int {
+	appEnv, err := Current()
+
+	if err != nil {
+		return -1
+	}
+	return appEnv.Index
+}
+
 // GetApplicationName() returns the name of the app within Cloudfoundry
 func GetApplicationName() (string, error) {
 	appEnv, err := Current()
