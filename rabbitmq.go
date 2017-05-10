@@ -206,7 +206,6 @@ func (c *Consumer) Connect() error {
 
 	var err error
 
-	log.Info(nil, "dialing %q", c.uri)
 	c.conn, err = amqp.Dial(c.uri)
 	if err != nil {
 		return fmt.Errorf("Dial: %s", err)
