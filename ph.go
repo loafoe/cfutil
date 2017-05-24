@@ -15,12 +15,15 @@ type PHService struct {
 	Secret          string
 }
 
-func ConnectPHService(serviceName string) (*PHService, error) {
+func ConnectPHService(phServiceType, serviceName string) (*PHService, error) {
 	var phService PHService
 	appEnv, _ := Current()
 	service := &cfenv.Service{}
 	err := errors.New("")
-	service, err = firstMatchingServiceURN(appEnv, serviceName+":")
+	service, err = appEnv.Services.WithName(serviceName)
+	if err != nil {
+		service, err = firstMatchingServiceURN(appEnv, phServiceType+":")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +35,7 @@ func ConnectPHService(serviceName string) (*PHService, error) {
 	if len(splitted) != 6 {
 		return nil, errors.New("Expected ph[div]:appName:propName:key:secret:baseURI")
 	}
-	if splitted[0] != serviceName {
+	if splitted[0] != phServiceType {
 		return nil, errors.New("URN mismatch: " + splitted[0])
 	}
 	phService.ApplicationName = splitted[1]
