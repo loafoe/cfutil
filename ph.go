@@ -7,12 +7,12 @@ import (
 )
 
 type PHService struct {
-	Type            string
-	ApplicationName string
-	PropositionName string
-	BaseURL         string
-	Key             string
-	Secret          string
+	Type            string `json:"type"`
+	ApplicationName string `json:"application_name"`
+	PropositionName string `json:"proposition_name"`
+	BaseURL         string `json:"base_url"`
+	SharedKey       string `json:"shared_key"`
+	SharedSecret    string `json:"shared_secret"`
 }
 
 func ConnectPHService(phServiceType, serviceName string) (*PHService, error) {
@@ -31,17 +31,19 @@ func ConnectPHService(phServiceType, serviceName string) (*PHService, error) {
 	if !ok {
 		return nil, errors.New("Connect PH service  could not be read")
 	}
-	splitted := strings.Split(":", str)
-	if len(splitted) != 7 { // because last field will be split on ://
-		return nil, errors.New("Expected ph[div]:appName:propName:key:secret:baseURI")
+	phService.BaseURL = strings.TrimPrefix(str, phServiceType+":")
+	if val, ok := service.Credentials["application_name"].(string); ok {
+		phService.ApplicationName = val
 	}
-	if splitted[0] != phServiceType {
-		return nil, errors.New("URN mismatch: " + splitted[0])
+	if val, ok := service.Credentials["proposition_name"].(string); ok {
+		phService.PropositionName = val
 	}
-	phService.ApplicationName = splitted[1]
-	phService.PropositionName = splitted[2]
-	phService.Key = splitted[3]
-	phService.Secret = splitted[4]
-	phService.BaseURL = strings.Join(splitted[5:], ":")
+	if val, ok := service.Credentials["shared_key"].(string); ok {
+		phService.SharedKey = val
+	}
+	if val, ok := service.Credentials["shared_secret"].(string); ok {
+		phService.SharedSecret = val
+	}
+	phService.Type = phServiceType
 	return &phService, nil
 }
