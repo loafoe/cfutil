@@ -2,8 +2,10 @@ package cfutil
 
 import (
 	"errors"
-	cfenv "github.com/cloudfoundry-community/go-cfenv"
+	"fmt"
 	"strings"
+
+	cfenv "github.com/cloudfoundry-community/go-cfenv"
 )
 
 type PHService struct {
@@ -29,7 +31,10 @@ func ConnectPHService(phServiceType, serviceName string) (*PHService, error) {
 	}
 	str, ok := service.Credentials["uri"].(string)
 	if !ok {
-		return nil, errors.New("Connect PH service  could not be read")
+		return nil, errors.New("Connect PH service could not be read")
+	}
+	if !strings.HasPrefix(str, phServiceType+":") {
+		return nil, fmt.Errorf("PH service mismatch: %s --> %s", phServiceType, str)
 	}
 	phService.BaseURL = strings.TrimPrefix(str, phServiceType+":")
 	if val, ok := service.Credentials["application_name"].(string); ok {
