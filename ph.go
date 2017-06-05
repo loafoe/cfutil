@@ -15,6 +15,8 @@ type PHService struct {
 	BaseURL         string `json:"base_url"`
 	SharedKey       string `json:"shared_key"`
 	SharedSecret    string `json:"shared_secret"`
+	Client          string `json:"client"`
+	Password        string `json:"password"`
 }
 
 func ConnectPHService(phServiceType, serviceName string) (*PHService, error) {
