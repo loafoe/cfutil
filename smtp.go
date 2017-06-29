@@ -3,6 +3,7 @@ package cfutil
 import (
 	"errors"
 	"net/url"
+	"strings"
 
 	cfenv "github.com/cloudfoundry-community/go-cfenv"
 )
@@ -30,11 +31,18 @@ func FindSMTPService(serviceName string) (*SMTPService, error) {
 		return nil, errors.New("SMTP credentials could not be read")
 	}
 	var s SMTPService
-	uri, err := url.Parse(str)
-	if err != nil {
-		return nil, err
+	str = strings.TrimPrefix(str, `smtp://`)
+	s.Scheme = `smtp`
+	splitted := strings.Split(str, `@`)
+	if len(splitted) > 1 {
+		s.Host = splitted[1]
 	}
-	s.URL = *uri
+	userPass := strings.Split(splitted[0], `:`)
+	if len(userPass) > 1 {
+		s.User = url.UserPassword(userPass[0], userPass[1])
+	} else {
+		s.User = url.UserPassword(userPass[0], "")
+	}
 	if str, ok := service.Credentials["authentication"].(string); ok {
 		s.Authentication = str
 	}

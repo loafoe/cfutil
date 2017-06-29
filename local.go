@@ -88,7 +88,6 @@ func localVcapServices() string {
 			}
 			serviceJSON.Set(name, "name")
 			serviceJSON.Set(uri, "credentials", "uri")
-			fmt.Printf("Added local service %s: %s\n", name, uri)
 			jsonObj.ArrayAppendP(serviceJSON.Data(), "user-provided")
 		}
 	}
