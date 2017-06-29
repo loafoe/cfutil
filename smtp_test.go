@@ -32,5 +32,6 @@ func TestFindSMTPService(t *testing.T) {
 	password, ok := uri.User.Password()
 	assert.Equal(t, ok, true)
 	assert.Equal(t, password, "bar")
-	assert.Equal(t, uri.Host, "some.host:587")
+	assert.Equal(t, uri.Hostname(), "some.host")
+	assert.Equal(t, uri.Port(), "587")
 }
