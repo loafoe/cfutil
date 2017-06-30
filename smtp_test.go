@@ -1,7 +1,6 @@
 package cfutil
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -18,20 +17,20 @@ func TestFindSMTPService(t *testing.T) {
 		return
 	}
 
-	uri, err := FindSMTPService("")
+	service, err := FindSMTPService("")
 
 	if !assert.NoError(t, err) {
 		t.Errorf("VCAP_SERVICES: %s", os.Getenv("VCAP_SERVICES"))
 		return
 	}
-	if !assert.NotNil(t, uri) {
+	if !assert.NotNil(t, service) {
 		return
 	}
-	fmt.Printf("%v", uri)
-	assert.Equal(t, uri.User.Username(), "foox")
-	password, ok := uri.User.Password()
+	assert.Equal(t, service.User.Username(), "foox")
+	assert.Equal(t, service.Username, "foox")
+	password, ok := service.User.Password()
 	assert.Equal(t, ok, true)
 	assert.Equal(t, password, "tuH5hM/yYtt")
-	assert.Equal(t, uri.Hostname(), "email-smtp.us-east-1.amazonaws.com")
-	assert.Equal(t, uri.Port(), "587")
+	assert.Equal(t, service.Hostname(), "email-smtp.us-east-1.amazonaws.com")
+	assert.Equal(t, service.Port(), "587")
 }

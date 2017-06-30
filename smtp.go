@@ -12,6 +12,8 @@ type SMTPService struct {
 	url.URL
 	Authentication     string
 	EnableStartTLSAuto string
+	Username           string
+	Password           string
 }
 
 func FindSMTPService(serviceName string) (*SMTPService, error) {
@@ -40,8 +42,11 @@ func FindSMTPService(serviceName string) (*SMTPService, error) {
 	userPass := strings.Split(splitted[0], `:`)
 	if len(userPass) > 1 {
 		s.User = url.UserPassword(userPass[0], userPass[1])
+		s.Username = userPass[0]
+		s.Password = userPass[1]
 	} else {
 		s.User = url.UserPassword(userPass[0], "")
+		s.Username = userPass[0]
 	}
 	if str, ok := service.Credentials["authentication"].(string); ok {
 		s.Authentication = str
