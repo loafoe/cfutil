@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/Sirupsen/logrus"
 )
 
@@ -86,7 +88,7 @@ func (f HSDPLogger) Critical(c context.Context, format string, args ...interface
 
 func (f *HSDPLogger) Format(entry *logrus.Entry) ([]byte, error) {
 	data := f.template
-	data.Time = entry.Time.Format(logrus.DefaultTimestampFormat)
+	data.Time = entry.Time.Format(time.RFC3339)
 	data.Value.Message = entry.Message
 	data.Severity = entry.Level.String()
 
