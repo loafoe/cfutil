@@ -26,6 +26,7 @@ func (v *VaultClient) Login() (err error) {
 		"secret_id": v.SecretID,
 	}
 	v.Secret, err = v.Logical().Write(path, options)
+	v.SetToken(v.Secret.Auth.ClientToken)
 	return err
 }
 
@@ -73,6 +74,9 @@ func NewVaultClient(serviceName string) (*VaultClient, error) {
 		return nil, err
 	}
 	vaultClient.Client = *client
-
+	err = vaultClient.Login()
+	if err != nil {
+		return nil, err
+	}
 	return &vaultClient, vaultClient.Login()
 }
