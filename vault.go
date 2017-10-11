@@ -2,10 +2,13 @@ package cfutil
 
 import (
 	"errors"
+	"regexp"
 
 	cfenv "github.com/cloudfoundry-community/go-cfenv"
 	vault "github.com/hashicorp/vault/api"
 )
+
+var v1Regex = regexp.MustCompile(`/v1/`)
 
 type VaultClient struct {
 	vault.Client
@@ -52,19 +55,19 @@ func NewVaultClient(serviceName string) (*VaultClient, error) {
 		vaultClient.SecretID = str
 	}
 	if str, ok := service.Credentials["org_secret_path"].(string); ok {
-		vaultClient.OrgSecretPath = str
+		vaultClient.OrgSecretPath = v1Regex.ReplaceAllString(str, "")
 	}
 	if str, ok := service.Credentials["service_secret_path"].(string); ok {
-		vaultClient.ServiceSecretPath = str
+		vaultClient.ServiceSecretPath = v1Regex.ReplaceAllString(str, "")
 	}
 	if str, ok := service.Credentials["endpoint"].(string); ok {
 		vaultClient.Endpoint = str
 	}
 	if str, ok := service.Credentials["space_secret_path"].(string); ok {
-		vaultClient.SpaceSecretPath = str
+		vaultClient.SpaceSecretPath = v1Regex.ReplaceAllString(str, "")
 	}
 	if str, ok := service.Credentials["service_transit_path"].(string); ok {
-		vaultClient.ServiceTransitPath = str
+		vaultClient.ServiceTransitPath = v1Regex.ReplaceAllString(str, "")
 	}
 
 	client, err := vault.NewClient(&vault.Config{
