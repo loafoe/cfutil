@@ -68,6 +68,14 @@ func serviceByName(env *cfenv.App, serviceName string) (*cfenv.Service, error) {
 	return service, nil
 }
 
+func serviceByTag(env *cfenv.App, serviceTag string) (*cfenv.Service, error) {
+	service, err := env.Services.WithTag(serviceTag)
+	if err != nil {
+		return nil, err
+	}
+	return &service[0], nil
+}
+
 func serviceURIByName(env *cfenv.App, serviceName string) (string, error) {
 	service, err := serviceByName(env, serviceName)
 	if err != nil {
