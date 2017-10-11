@@ -53,7 +53,7 @@ func (v *VaultClient) ReadString(prefix, path string) (string, error) {
 		return "", err
 	}
 	str, ok := secret.Data["value"].(string)
-	if !ok {
+	if !ok || str == "" {
 		return "", fmt.Errorf("Missing value on path %s", location)
 	}
 	return str, nil
