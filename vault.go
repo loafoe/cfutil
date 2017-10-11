@@ -33,6 +33,30 @@ func (v *VaultClient) Login() (err error) {
 	return err
 }
 
+func (v *VaultClient) ReadSpaceString(path string) string {
+	return v.ReadString(v.SpaceSecretPath, path)
+}
+
+func (v *VaultClient) ReadOrgString(path string) string {
+	return v.ReadString(v.OrgSecretPath, path)
+}
+
+func (v *VaultClient) ReadString(prefix, path string) string {
+	err := v.Login()
+	if err != nil {
+		return ""
+	}
+	secret, err := v.Logical().Read(prefix + "/" + path)
+	if err != nil {
+		return ""
+	}
+	str, ok := secret.Data["value"].(string)
+	if !ok {
+		return ""
+	}
+	return str
+}
+
 func NewVaultClient(serviceName string) (*VaultClient, error) {
 	appEnv, _ := Current()
 	service := &cfenv.Service{}
