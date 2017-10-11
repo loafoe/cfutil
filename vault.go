@@ -2,6 +2,7 @@ package cfutil
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 
 	cfenv "github.com/cloudfoundry-community/go-cfenv"
@@ -46,13 +47,14 @@ func (v *VaultClient) ReadString(prefix, path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	secret, err := v.Logical().Read(prefix + "/" + path)
+	location := prefix + "/" + path
+	secret, err := v.Logical().Read(location)
 	if err != nil {
 		return "", err
 	}
 	str, ok := secret.Data["value"].(string)
 	if !ok {
-		return "", errors.New("Missing value string")
+		return "", fmt.Errorf("Missing value on path %s", location)
 	}
 	return str, nil
 }
