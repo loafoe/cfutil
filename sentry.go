@@ -8,8 +8,8 @@ import (
 
 func SentryDSN(serviceName string) (string, error) {
 	appEnv, _ := Current()
-	service := &cfenv.Service{}
-	err := errors.New("")
+	var service *cfenv.Service
+	var err error
 	if serviceName != "" {
 		service, err = serviceByName(appEnv, serviceName)
 	} else {
@@ -17,6 +17,9 @@ func SentryDSN(serviceName string) (string, error) {
 	}
 	if err != nil {
 		return "", err
+	}
+	if service == nil {
+		return "", errors.New("Sentry service not found")
 	}
 	str, ok := service.Credentials["uri"].(string)
 	if !ok {

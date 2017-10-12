@@ -10,8 +10,8 @@ import (
 
 func MattermostDSN(serviceName string) (*url.URL, error) {
 	appEnv, _ := Current()
-	service := &cfenv.Service{}
-	err := errors.New("")
+	var service *cfenv.Service
+	var err error
 	if serviceName != "" {
 		service, err = serviceByName(appEnv, serviceName)
 	} else {
@@ -19,6 +19,9 @@ func MattermostDSN(serviceName string) (*url.URL, error) {
 	}
 	if err != nil {
 		return nil, err
+	}
+	if service == nil {
+		return nil, errors.New("No mattermost service found")
 	}
 	str, ok := service.Credentials["uri"].(string)
 	if !ok {

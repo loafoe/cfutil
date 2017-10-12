@@ -22,14 +22,17 @@ type PHService struct {
 func ConnectPHService(phServiceType, serviceName string) (*PHService, error) {
 	var phService PHService
 	appEnv, _ := Current()
-	service := &cfenv.Service{}
-	err := errors.New("")
+	var service *cfenv.Service
+	var err error
 	service, err = appEnv.Services.WithName(serviceName)
 	if err != nil {
 		service, err = firstMatchingServiceURN(appEnv, phServiceType+":")
+		if err != nil {
+			return nil, err
+		}
 	}
-	if err != nil {
-		return nil, err
+	if service == nil {
+		return nil, fmt.Errorf("Connect PH service not found: %s", phServiceType)
 	}
 	str, ok := service.Credentials["uri"].(string)
 	if !ok {

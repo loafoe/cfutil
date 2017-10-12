@@ -18,8 +18,8 @@ type SMTPService struct {
 
 func FindSMTPService(serviceName string) (*SMTPService, error) {
 	appEnv, _ := Current()
-	service := &cfenv.Service{}
-	err := errors.New("")
+	var service *cfenv.Service
+	var err error
 	if serviceName != "" {
 		service, err = serviceByName(appEnv, serviceName)
 	} else {
@@ -27,6 +27,9 @@ func FindSMTPService(serviceName string) (*SMTPService, error) {
 	}
 	if err != nil {
 		return nil, err
+	}
+	if service == nil {
+		return nil, errors.New("SMTP service not found")
 	}
 	str, ok := service.Credentials["uri"].(string)
 	if !ok {

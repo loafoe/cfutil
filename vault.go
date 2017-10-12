@@ -61,8 +61,8 @@ func (v *VaultClient) ReadString(prefix, path string) (string, error) {
 
 func NewVaultClient(serviceName string) (*VaultClient, error) {
 	appEnv, _ := Current()
-	service := &cfenv.Service{}
-	err := errors.New("")
+	var service *cfenv.Service
+	var err error
 	if serviceName != "" {
 		service, err = serviceByName(appEnv, serviceName)
 	} else {
@@ -71,7 +71,9 @@ func NewVaultClient(serviceName string) (*VaultClient, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	if service == nil {
+		return nil, errors.New("Vault service not found")
+	}
 	var vaultClient VaultClient
 
 	if str, ok := service.Credentials["role_id"].(string); ok {
