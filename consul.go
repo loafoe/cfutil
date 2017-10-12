@@ -3,7 +3,6 @@ package cfutil
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 
@@ -12,11 +11,7 @@ import (
 
 // Services() returns the list of services available from the
 // Consul cluster
-func Services() ([]string, error) {
-	client, err := NewConsulClient()
-	if err != nil {
-		return nil, err
-	}
+func (client *ConsulClient) Services() ([]string, error) {
 	catalogServices, _, err := client.Catalog().Services(nil)
 	if err != nil {
 		return []string{}, err
@@ -28,11 +23,7 @@ func Services() ([]string, error) {
 	return services, nil
 }
 
-func DiscoverServiceURL(serviceName, tags string) (string, error) {
-	client, err := NewConsulClient()
-	if err != nil {
-		return "", err
-	}
+func (client *ConsulClient) DiscoverServiceURL(serviceName, tags string) (string, error) {
 	services, _, err := client.Catalog().Service(serviceName, tags, nil)
 	if err != nil {
 		return "", fmt.Errorf("Service `%s` not found: %s", serviceName, err)
@@ -41,7 +32,6 @@ func DiscoverServiceURL(serviceName, tags string) (string, error) {
 		return CreateURLFromServiceCatalog(services[0])
 	}
 	return "", fmt.Errorf("Service `%s` not found", serviceName)
-
 }
 
 func CreateURLFromServiceCatalog(catalog *consul.CatalogService) (string, error) {
@@ -59,13 +49,9 @@ func CreateURLFromServiceCatalog(catalog *consul.CatalogService) (string, error)
 // Use ServiceRegister() to register your app in the Consul cluster
 // Optionally you can provide a health endpoint on your URL and
 // a number of tags to make your service more discoverable
-func ServiceRegister(name string, path string, tags ...string) error {
-	appEnv, _ := Current()
-	client, err := NewConsulClient()
-	if err != nil {
-		return err
-	}
+func (client *ConsulClient) ServiceRegister(name string, path string, tags ...string) error {
 	schema, port := schemaAndPortForServices()
+	appEnv, _ := Current()
 
 	appURL, _ := url.Parse(schema + "://" + appEnv.ApplicationURIs[0])
 	splitted := strings.Split(appURL.Host, ":")
@@ -80,7 +66,7 @@ func ServiceRegister(name string, path string, tags ...string) error {
 		}
 	}
 
-	err = client.Agent().ServiceRegister(&consul.AgentServiceRegistration{
+	err := client.Agent().ServiceRegister(&consul.AgentServiceRegistration{
 		Name:    name,
 		Address: hostWithoutPort,
 		Port:    port,
@@ -96,32 +82,38 @@ func ServiceRegister(name string, path string, tags ...string) error {
 	return nil
 }
 
+type ConsulClient struct {
+	consul.Client
+	Namespace string
+	Token     string
+}
+
 // NewConsulClient() returns a new consul client which you can use to
 // access the Consul cluster HTTP API. It uses `CONSUL_MASTER` and
 // `CONSUL_TOKEN` environment variables to set up the HTTP API connection.
-func NewConsulClient() (*consul.Client, error) {
-	dialScheme, dialHost, err := consulDialstring("consul")
+func NewConsulClient(server, namespace, token string) (*ConsulClient, error) {
+	dialScheme, dialHost, err := consulDialstring(server)
 	if err != nil {
 		return nil, err
 	}
+	var cc ConsulClient
+	cc.Token = token
+	cc.Namespace = namespace
 	client, consulErr := consul.NewClient(&consul.Config{
 		Address: dialHost,
 		Scheme:  dialScheme,
-		Token:   os.Getenv("CONSUL_TOKEN"),
+		Token:   token,
 	})
 	if consulErr != nil {
 		return nil, consulErr
 	}
-	return client, nil
+	cc.Client = *client
+	return &cc, nil
 }
 
-func GetConsulKey(mooncoreKey string) (string, error) {
-	ns := ConsulNamespace()
+func (client *ConsulClient) GetConsulKey(mooncoreKey string) (string, error) {
+	ns := client.Namespace
 	key := "mooncore/" + ns + "/" + mooncoreKey
-	client, err := NewConsulClient()
-	if err != nil {
-		return "", err
-	}
 	kvPair, _, err := client.KV().Get(key, nil)
 	if err != nil {
 		return "", err
@@ -132,11 +124,7 @@ func GetConsulKey(mooncoreKey string) (string, error) {
 	return string(kvPair.Value), nil
 }
 
-func ConsulDatacenter() (string, error) {
-	client, err := NewConsulClient()
-	if err != nil {
-		return "", err
-	}
+func (client *ConsulClient) ConsulDatacenter() (string, error) {
 	self, err := client.Agent().Self()
 	if err != nil {
 		return "", err
@@ -148,19 +136,12 @@ func ConsulDatacenter() (string, error) {
 	return dc, nil
 }
 
-func ConsulNamespace() string {
-	return os.Getenv("CONSUL_NAMESPACE")
-}
-
-func consulDialstring(serviceName string) (string, string, error) {
-	consulMaster := ""
-	if consulMaster = os.Getenv("CONSUL_MASTER"); consulMaster != "" {
-		parsed, err := url.Parse(consulMaster)
-		if err == nil {
-			return parsed.Scheme, parsed.Host, nil
-		}
+func consulDialstring(consulMaster string) (string, string, error) {
+	parsed, err := url.Parse(consulMaster)
+	if err == nil {
+		return parsed.Scheme, parsed.Host, nil
 	}
-	return "", "", fmt.Errorf("CONSUL_MASTER not found or invalid url: %s", consulMaster)
+	return "", "", fmt.Errorf("Invalid URL: [%s]", consulMaster)
 }
 
 func schemaAndPortForServices() (string, int) {
