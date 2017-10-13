@@ -63,6 +63,8 @@ func (f *HSDPLogger) Init(app, version, instance, component string) {
 	f.template.Version = version
 	f.template.Instance = instance
 	f.template.Component = component
+	f.template.Category = "Tracelog"
+	f.template.Event = "1"
 }
 
 func (f HSDPLogger) Raw(c context.Context, rawString string) {
