@@ -56,8 +56,8 @@ type logMessage struct {
 
 func (f *HSDPLogger) Init(app, version, instance, component string) {
 	f.logger = logrus.New()
-	logrus.SetOutput(os.Stdout)
 	f.logger.Formatter = f
+	f.logger.Out = os.Stdout
 
 	f.template.App = app
 	f.template.Version = version
