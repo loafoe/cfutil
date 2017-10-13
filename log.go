@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -55,7 +56,9 @@ type logMessage struct {
 
 func (f *HSDPLogger) Init(app, version, instance, component string) {
 	f.logger = logrus.New()
+	logrus.SetOutput(os.Stdout)
 	f.logger.Formatter = f
+
 	f.template.App = app
 	f.template.Version = version
 	f.template.Instance = instance
