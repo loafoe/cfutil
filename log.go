@@ -63,15 +63,14 @@ func (f *HSDPLogger) Init(app, version, instance, component string) {
 	f.template.Version = version
 	f.template.Instance = instance
 	if f.template.Instance == "" {
-		f.template.Instance = "NotSet"
+		f.template.Instance = "not-specified"
 	}
 	f.template.Component = component
 	f.template.Category = "Tracelog"
 	f.template.Event = "1"
-	f.template.Server = "NotSet"
-	f.template.Service = "NotSet"
-	f.template.Transaction = "1-2-3-4-5"
-	f.template.User = "NotSet"
+	f.template.Server = "not-set"
+	f.template.Service = "not-set"
+	f.template.User = "not-specified"
 }
 
 func (f HSDPLogger) Raw(c context.Context, rawString string) {
