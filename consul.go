@@ -107,6 +107,9 @@ func NewConsulClient(server, namespace, token string) (*ConsulClient, error) {
 	if consulErr != nil {
 		return nil, consulErr
 	}
+	if _, err := client.Status().Leader(); err != nil {
+		return nil, err
+	}
 	cc.Client = *client
 	return &cc, nil
 }
