@@ -99,7 +99,7 @@ func (f HSDPLogger) Critical(c context.Context, format string, args ...interface
 
 func (f *HSDPLogger) Format(entry *logrus.Entry) ([]byte, error) {
 	data := f.template
-	data.Time = entry.Time.Format(time.RFC3339)
+	data.Time = entry.Time.Format("2006-01-02T15:04:05.000Z07:00")
 	data.Value.Message = entry.Message
 	data.Severity = entry.Level.String()
 
