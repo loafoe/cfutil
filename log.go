@@ -72,28 +72,34 @@ func (f *HSDPLogger) Init(app, version, instance, component string) {
 	f.template.User = "not-specified"
 }
 
+const KeyCorrelationID = "correlationid"
+
+func correlationIDFromContext(c context.Context) string {
+	return c.Value(KeyCorrelationID).(string)
+}
+
 func (f HSDPLogger) Raw(c context.Context, rawString string) {
 	fmt.Print(rawString)
 }
 
 func (f HSDPLogger) Debug(c context.Context, format string, args ...interface{}) {
-	f.logger.Debugf(format, args...)
+	f.logger.WithField(KeyCorrelationID, correlationIDFromContext(c)).Debugf(format, args...)
 }
 
 func (f HSDPLogger) Info(c context.Context, format string, args ...interface{}) {
-	f.logger.Infof(format, args...)
+	f.logger.WithField(KeyCorrelationID, correlationIDFromContext(c)).Infof(format, args...)
 }
 
 func (f HSDPLogger) Warning(c context.Context, format string, args ...interface{}) {
-	f.logger.Warningf(format, args...)
+	f.logger.WithField(KeyCorrelationID, correlationIDFromContext(c)).Warningf(format, args...)
 }
 
 func (f HSDPLogger) Error(c context.Context, format string, args ...interface{}) {
-	f.logger.Errorf(format, args...)
+	f.logger.WithField(KeyCorrelationID, correlationIDFromContext(c)).Errorf(format, args...)
 }
 
 func (f HSDPLogger) Critical(c context.Context, format string, args ...interface{}) {
-	f.logger.Fatalf(format, args...)
+	f.logger.WithField(KeyCorrelationID, correlationIDFromContext(c)).Fatalf(format, args...)
 }
 
 func (f *HSDPLogger) Format(entry *logrus.Entry) ([]byte, error) {
@@ -105,7 +111,7 @@ func (f *HSDPLogger) Format(entry *logrus.Entry) ([]byte, error) {
 	data.Fields = make(logrus.Fields, len(entry.Data))
 	for k, v := range entry.Data {
 		switch k {
-		case "transaction":
+		case "transaction", KeyCorrelationID:
 			data.Transaction = v.(string)
 			continue
 		case "user":
