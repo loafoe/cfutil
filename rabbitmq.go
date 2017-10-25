@@ -68,18 +68,21 @@ type Consumer struct {
 	exchangeType string // topic, direct, etc...
 	bindingKey   string // routing key that we are using
 	queueName    string // queue name
+	log          Logger
 }
 
 type Producer struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
 	done    chan error
+	log     Logger
 }
 
 type ProducerConfig struct {
 	ServiceName  string
 	Exchange     string
 	ExchangeType string
+	log          Logger
 }
 
 type ConsumerConfig struct {
@@ -90,6 +93,7 @@ type ConsumerConfig struct {
 	RoutingKey   string
 	CTag         string
 	HandlerFunc  ConsumerHandlerFunc
+	log          Logger
 }
 
 func (p *Producer) Publish(exchange, routingKey string, msg amqp.Publishing) error {
@@ -123,7 +127,12 @@ func NewProducer(config ProducerConfig) (*Producer, error) {
 		conn:    nil,
 		channel: nil,
 		done:    make(chan error),
+		log:     config.log,
 	}
+	if p.log == nil {
+		p.log = defaultLogger
+	}
+
 	p.conn, err = amqp.Dial(connectString)
 	if err != nil {
 		return nil, fmt.Errorf("Dial: %s", err)
@@ -169,6 +178,10 @@ func NewConsumer(config ConsumerConfig) (*Consumer, error) {
 		bindingKey:   config.RoutingKey,
 		queueName:    config.QueueName,
 		done:         make(chan error),
+		log:          config.log,
+	}
+	if c.log == nil {
+		c.log = defaultLogger
 	}
 	return c, err
 }
@@ -195,7 +208,7 @@ func (c *Consumer) ReConnect(queueName, bindingKey string) (<-chan amqp.Delivery
 	time.Sleep(30 * time.Second)
 
 	if err := c.Connect(); err != nil {
-		log.Info(context.TODO(), "Could not connect in reconnect call: %v", err.Error())
+		c.log.Info(context.TODO(), "Could not connect in reconnect call: %v", err.Error())
 	}
 
 	deliveries, err := c.AnnounceQueue(queueName, bindingKey)
@@ -218,18 +231,18 @@ func (c *Consumer) Connect() error {
 
 	go func() {
 		// Waits here for the channel to be closed
-		log.Info(context.TODO(), "closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
+		c.log.Info(context.TODO(), "closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
 		// Let Handle know it's not time to reconnect
 		c.done <- errors.New("Channel Closed")
 	}()
 
-	log.Info(context.TODO(), "got Connection, getting Channel")
+	c.log.Info(context.TODO(), "got Connection, getting Channel")
 	c.channel, err = c.conn.Channel()
 	if err != nil {
 		return fmt.Errorf("Channel: %s", err)
 	}
 
-	log.Info(context.TODO(), "got Channel, declaring Exchange (%q)", c.exchange)
+	c.log.Info(context.TODO(), "got Channel, declaring Exchange (%q)", c.exchange)
 	if err = c.channel.ExchangeDeclare(
 		c.exchange,     // name of the exchange
 		c.exchangeType, // type
@@ -248,7 +261,7 @@ func (c *Consumer) Connect() error {
 // AnnounceQueue sets the queue that will be listened to for this
 // connection...
 func (c *Consumer) AnnounceQueue(queueName, bindingKey string) (<-chan amqp.Delivery, error) {
-	log.Info(context.TODO(), "declared Exchange, declaring Queue %q", queueName)
+	c.log.Info(context.TODO(), "declared Exchange, declaring Queue %q", queueName)
 	queue, err := c.channel.QueueDeclare(
 		queueName, // name of the queue
 		true,      // durable
@@ -262,7 +275,7 @@ func (c *Consumer) AnnounceQueue(queueName, bindingKey string) (<-chan amqp.Deli
 		return nil, fmt.Errorf("Queue Declare: %s", err)
 	}
 
-	log.Info(context.TODO(), "declared Queue (%q %d messages, %d consumers), binding to Exchange (key %q)",
+	c.log.Info(context.TODO(), "declared Queue (%q %d messages, %d consumers), binding to Exchange (key %q)",
 		queue.Name, queue.Messages, queue.Consumers, bindingKey)
 
 	// Qos determines the amount of messages that the queue will pass to you before
@@ -286,7 +299,7 @@ func (c *Consumer) AnnounceQueue(queueName, bindingKey string) (<-chan amqp.Deli
 		return nil, fmt.Errorf("Queue Bind: %s", err)
 	}
 
-	log.Info(context.TODO(), "Queue bound to Exchange, starting Consume (consumer tag %q)", c.consumerTag)
+	c.log.Info(context.TODO(), "Queue bound to Exchange, starting Consume (consumer tag %q)", c.consumerTag)
 	deliveries, err := c.channel.Consume(
 		queue.Name,    // name
 		c.consumerTag, // consumerTag,
@@ -331,24 +344,11 @@ func (c *Consumer) Handle(
 			if err != nil {
 				// Very likely chance of failing
 				// should not cause worker to terminate
-				log.Error(context.TODO(), "Reconnecting Error: %s", err)
+				c.log.Error(context.TODO(), "Reconnecting Error: %s", err)
 			}
 		}
-		log.Info(context.TODO(), "Reconnected... possibly")
+		c.log.Info(context.TODO(), "Reconnected... possibly")
 	}
 }
 
 type ConsumerHandlerFunc func(deliveries <-chan amqp.Delivery) error
-
-func DummyConsumerHandler(deliveries <-chan amqp.Delivery) error {
-	for d := range deliveries {
-		log.Debug(context.TODO(),
-			"got %dB delivery: [%v] %q",
-			len(d.Body),
-			d.DeliveryTag,
-			d.Body,
-		)
-		d.Ack(false)
-	}
-	return nil
-}

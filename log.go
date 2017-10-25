@@ -18,14 +18,63 @@ type Logger interface {
 	Raw(c context.Context, rawMessage string)
 }
 
-func NewLogger() Logger {
-	newLogger := HSDPLogger{}
-	appName, _ := GetApplicationName()
-	newLogger.Init(appName, "", "", "")
-	return newLogger
+type LoggerConfig struct {
+	AppName      string
+	AppVersion   string
+	AppInstance  string
+	AppComponent string
 }
 
-var log = NewLogger()
+type DefaultLogger struct {
+}
+
+func (l DefaultLogger) Debug(c context.Context, format string, args ...interface{}) {
+	fmt.Printf("[DEBUG]: "+format, args...)
+}
+
+func (l DefaultLogger) Info(c context.Context, format string, args ...interface{}) {
+	fmt.Printf("[INFO]: "+format, args...)
+}
+
+func (l DefaultLogger) Warning(c context.Context, format string, args ...interface{}) {
+	fmt.Printf("[WARNING]: "+format, args...)
+}
+
+func (l DefaultLogger) Error(c context.Context, format string, args ...interface{}) {
+	fmt.Printf("[ERROR]: "+format, args...)
+}
+
+func (l DefaultLogger) Critical(c context.Context, format string, args ...interface{}) {
+	fmt.Printf("[CRITICAL]: "+format, args...)
+}
+
+func (l DefaultLogger) Raw(c context.Context, rawMessage string) {
+	fmt.Printf(rawMessage)
+}
+
+var defaultLogger = DefaultLogger{}
+
+func NewLogger(config LoggerConfig) Logger {
+	l := HSDPLogger{}
+	l.logger = logrus.New()
+	l.logger.Formatter = &l
+	l.logger.Out = os.Stdout
+
+	l.template.App = config.AppName
+	l.template.Version = config.AppVersion
+	l.template.Instance = config.AppInstance
+	if l.template.Instance == "" {
+		l.template.Instance = "not-specified"
+	}
+	l.template.Component = config.AppComponent
+	l.template.Category = "Tracelog"
+	l.template.Event = "1"
+	l.template.Server = "not-set"
+	l.template.Service = "not-set"
+	l.template.User = "not-specified"
+
+	return l
+}
 
 type HSDPLogger struct {
 	logger   *logrus.Logger
@@ -51,25 +100,6 @@ type logMessage struct {
 	Component   string        `json:"cmp,omitempty"`
 	Time        string        `json:"time,omitempty"`
 	Fields      logrus.Fields `json:"fields,omitempty"`
-}
-
-func (f *HSDPLogger) Init(app, version, instance, component string) {
-	f.logger = logrus.New()
-	f.logger.Formatter = f
-	f.logger.Out = os.Stdout
-
-	f.template.App = app
-	f.template.Version = version
-	f.template.Instance = instance
-	if f.template.Instance == "" {
-		f.template.Instance = "not-specified"
-	}
-	f.template.Component = component
-	f.template.Category = "Tracelog"
-	f.template.Event = "1"
-	f.template.Server = "not-set"
-	f.template.Service = "not-set"
-	f.template.User = "not-specified"
 }
 
 const KeyCorrelationID = "correlationid"
