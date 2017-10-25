@@ -19,10 +19,11 @@ type Logger interface {
 }
 
 type LoggerConfig struct {
-	AppName      string
-	AppVersion   string
-	AppInstance  string
-	AppComponent string
+	AppName       string
+	AppVersion    string
+	AppInstance   string
+	AppComponent  string
+	CorrelationID string
 }
 
 type DefaultLogger struct {
@@ -102,7 +103,7 @@ type logMessage struct {
 	Fields      logrus.Fields `json:"fields,omitempty"`
 }
 
-const KeyCorrelationID = "correlationid"
+const KeyCorrelationID = "correlationid" // TODO: get rid of this magic
 
 func correlationIDFromContext(c context.Context) string {
 	if c == nil {
