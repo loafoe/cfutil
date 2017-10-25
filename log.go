@@ -75,6 +75,9 @@ func (f *HSDPLogger) Init(app, version, instance, component string) {
 const KeyCorrelationID = "correlationid"
 
 func correlationIDFromContext(c context.Context) string {
+	if c == nil {
+		return ""
+	}
 	if id, ok := c.Value(KeyCorrelationID).(string); ok {
 		return id
 	}
