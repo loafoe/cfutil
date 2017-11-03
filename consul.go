@@ -1,6 +1,7 @@
 package cfutil
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -112,6 +113,21 @@ func NewConsulClient(server, namespace, token string) (*ConsulClient, error) {
 	}
 	cc.Client = *client
 	return &cc, nil
+}
+
+func (client *ConsulClient) GetConsulKeyValue(mooncoreKey string) (string, error) {
+	jsonValue, err := client.GetConsulKey(mooncoreKey)
+	if err != nil {
+		return "", err
+	}
+	var val struct {
+		Value string `json:"value,omitempty"`
+	}
+	err = json.Unmarshal([]byte(jsonValue), &val)
+	if err != nil {
+		return "", err
+	}
+	return val.Value, nil
 }
 
 func (client *ConsulClient) GetConsulKey(mooncoreKey string) (string, error) {
