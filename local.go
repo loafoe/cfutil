@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jeffail/gabs"
-	"github.com/satori/go.uuid"
 )
 
 // Struct that simulates the Cloudfoundry application environment
@@ -31,8 +31,7 @@ type vcapApplication struct {
 }
 
 func localVcapApplication() string {
-	id, _ := uuid.NewV4()
-	appID := id.String()
+	appID := uuid.New().String()
 	port := 8080
 	host := "localhost"
 	if p, err := strconv.Atoi(os.Getenv("PORT")); err == nil {
