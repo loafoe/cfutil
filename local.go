@@ -31,7 +31,8 @@ type vcapApplication struct {
 }
 
 func localVcapApplication() string {
-	appID := uuid.NewV4().String()
+	id, _ := uuid.NewV4()
+	appID := id.String()
 	port := 8080
 	host := "localhost"
 	if p, err := strconv.Atoi(os.Getenv("PORT")); err == nil {
