@@ -12,9 +12,9 @@ require (
 	github.com/jmoiron/sqlx v0.0.0-20180406164412-2aeb6a910c2b
 	github.com/lib/pq v0.0.0-20180327071824-d34b9ff171c2
 	github.com/mitchellh/mapstructure v0.0.0-20180220230111-00c29f56e238
-	github.com/sirupsen/logrus v1.4.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/streadway/amqp v0.0.0-20180315184602-8e4aba63da9f
-	github.com/stretchr/testify v1.2.2
+	github.com/stretchr/testify v1.7.0
 )
 
 require (
@@ -67,7 +67,6 @@ require (
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/jefferai/jsonx v0.0.0-20160721235117-9cc31c3135ee // indirect
 	github.com/keybase/go-crypto v0.0.0-20180807163025-c84d7cbef16b // indirect
-	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/miekg/dns v1.0.8 // indirect
@@ -95,7 +94,7 @@ require (
 	github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926 // indirect
 	golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac // indirect
 	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d // indirect
-	golang.org/x/sys v0.0.0-20190507160741-ecd444e8653b // indirect
+	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	golang.org/x/text v0.3.0 // indirect
 	golang.org/x/time v0.0.0-20180412165947-fbb02b2291d2 // indirect
 	google.golang.org/appengine v1.1.0 // indirect
@@ -105,4 +104,5 @@ require (
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.2.1 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
