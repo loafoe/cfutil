@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/cloudfoundry-community/go-cfenv v1.17.0
 	github.com/gemnasium/migrate v1.4.1
-	github.com/google/uuid v1.1.1
+	github.com/google/uuid v1.3.0
 	github.com/hashicorp/consul v1.2.2
 	github.com/hashicorp/vault v0.11.1
 	github.com/jeffail/gabs v1.0.0
